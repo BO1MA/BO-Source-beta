@@ -4,6 +4,8 @@ Vercel Cron Job — triggers a daily redeployment via Deploy Hook.
 Set the VERCEL_DEPLOY_HOOK env var to your Deploy Hook URL
 (create one in Vercel Dashboard → Project → Settings → Git → Deploy Hooks).
 """
+from __future__ import annotations
+
 import json
 import logging
 import os

@@ -6,6 +6,8 @@ Hit this endpoint once after deploying to register your webhook URL:
 
 It tells Telegram to send updates to /api/webhook on this domain.
 """
+from __future__ import annotations
+
 import json
 import logging
 import asyncio
