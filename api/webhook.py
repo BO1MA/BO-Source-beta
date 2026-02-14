@@ -21,12 +21,22 @@ from src.handlers import register_all_handlers
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
+    level=logging.WARNING,  # Reduce log noise for faster execution
 )
 logger = logging.getLogger(__name__)
 
 # ── Build the Application once (reused across warm invocations) ──
 _app: Application | None = None
+_loop: asyncio.AbstractEventLoop | None = None
+
+
+def _get_or_create_loop() -> asyncio.AbstractEventLoop:
+    """Reuse a single event loop across warm invocations."""
+    global _loop
+    if _loop is None or _loop.is_closed():
+        _loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_loop)
+    return _loop
 
 
 async def _get_app() -> Application:
@@ -34,7 +44,12 @@ async def _get_app() -> Application:
     global _app
     if _app is None:
         Config.validate()
-        _app = Application.builder().token(Config.BOT_TOKEN).build()
+        _app = (
+            Application.builder()
+            .token(Config.BOT_TOKEN)
+            .concurrent_updates(True)  # Process updates concurrently
+            .build()
+        )
         register_all_handlers(_app)
         await _app.initialize()
         logger.info("Application initialized (webhook mode)")
@@ -44,13 +59,18 @@ async def _get_app() -> Application:
 class handler(BaseHTTPRequestHandler):
     """Vercel serverless handler for Telegram webhook POST requests."""
 
+    def log_message(self, format, *args):
+        """Suppress default BaseHTTPRequestHandler logging for speed."""
+        pass
+
     def do_POST(self):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length)
             data = json.loads(body)
 
-            asyncio.run(self._process_update(data))
+            loop = _get_or_create_loop()
+            loop.run_until_complete(self._process_update(data))
 
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
