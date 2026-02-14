@@ -6,6 +6,7 @@ Uses yt-dlp for downloading.
 import logging
 import os
 import asyncio
+import tempfile
 from pathlib import Path
 
 from telegram import Update
@@ -17,7 +18,8 @@ from src.utils.keyboard import build_yt_keyboard
 
 logger = logging.getLogger(__name__)
 
-DOWNLOAD_DIR = Path("downloads")
+# Use /tmp on Vercel (read-only filesystem), fallback to local 'downloads' dir
+DOWNLOAD_DIR = Path(tempfile.gettempdir()) / "yt_downloads"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 
