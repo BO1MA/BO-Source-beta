@@ -128,7 +128,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     # ── Info commands ──
-    if text in ("Id", "ايدي", "ايديي"):
+    if text in ("Id", "id", "ID", "ايدي", "ايديي"):
         target = update.message.reply_to_message.from_user if update.message.reply_to_message else user
         await update.message.reply_text(f"\u2756 الايدي: {target.id}")
         return
@@ -456,11 +456,59 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
 
+async def handle_edited_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Track edited messages — increment edit count for the user."""
+    if not update.edited_message or not update.effective_user or not update.effective_chat:
+        return
+    if update.effective_chat.type not in ("group", "supergroup"):
+        return
+
+    user = update.effective_user
+    chat = update.effective_chat
+    user_svc.increment_stat(user.id, chat.id, "edits")
+
+
+async def handle_media_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Track media messages — increment sticker, contact, and media counts."""
+    if not update.message or not update.effective_user or not update.effective_chat:
+        return
+    if update.effective_chat.type not in ("group", "supergroup"):
+        return
+
+    user = update.effective_user
+    chat = update.effective_chat
+    msg = update.message
+
+    if msg.sticker:
+        user_svc.increment_stat(user.id, chat.id, "stickers")
+    if msg.contact:
+        user_svc.increment_stat(user.id, chat.id, "contacts")
+    if msg.photo or msg.video or msg.animation or msg.document or msg.audio or msg.voice or msg.video_note:
+        group_svc.increment_stat(chat.id, "media_count")
+
+
 def register(app: Application) -> None:
     """Register start-related handlers."""
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
     app.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, farewell_member))
+
+    G = filters.ChatType.GROUPS
+
+    # Edit tracking (group=3 — runs early for all edits)
+    app.add_handler(MessageHandler(
+        filters.UpdateType.EDITED_MESSAGE & G,
+        handle_edited_message,
+    ), group=3)
+
+    # Media stats tracking (group=98 — runs for all non-text)
+    app.add_handler(MessageHandler(
+        (filters.PHOTO | filters.VIDEO | filters.Sticker.ALL | filters.ANIMATION |
+         filters.Document.ALL | filters.AUDIO | filters.VOICE | filters.VIDEO_NOTE |
+         filters.CONTACT) & G,
+        handle_media_message,
+    ), group=98)
+
     # The group message handler is added with a low priority so other handlers run first
     app.add_handler(MessageHandler(
         filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,

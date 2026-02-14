@@ -75,7 +75,7 @@ class handler(BaseHTTPRequestHandler):
             await bot.delete_webhook(drop_pending_updates=True)
             result = await bot.set_webhook(
                 url=url,
-                allowed_updates=["message", "callback_query", "chat_member", "my_chat_member"],
+                allowed_updates=["message", "edited_message", "callback_query", "chat_member", "my_chat_member"],
             )
             return result
 

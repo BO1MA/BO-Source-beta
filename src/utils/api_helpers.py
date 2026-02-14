@@ -28,7 +28,7 @@ async def is_bot_admin(bot: Bot, chat_id: int) -> bool:
         return False
 
 
-async def check_channel_membership(bot: Bot, channel_id: int, user_id: int) -> bool:
+async def check_channel_membership(bot: Bot, channel_id: int | str, user_id: int) -> bool:
     """Check if a user is a member of the required channel."""
     try:
         member = await bot.get_chat_member(channel_id, user_id)

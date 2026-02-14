@@ -779,7 +779,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^ضع وصف") & G, handle_set_description), group=10)
     app.add_handler(MessageHandler(filters.Regex("^(حذف الوصف|مسح الوصف)$") & G, handle_delete_description), group=10)
     app.add_handler(MessageHandler(filters.Regex("^ضع رابط$") & G, handle_set_link), group=10)
-    app.add_handler(MessageHandler(filters.Regex("^(حذف الرابط|مسح الرابط)$") & G, handle_delete_link), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^(حذف الرابط|مسح الرابط|رابط الحذف|روابط الحذف)$") & G, handle_delete_link), group=10)
     app.add_handler(MessageHandler(filters.Regex("^(تغيير صورة الجروب|صورة الجروب)$") & G, handle_set_photo), group=10)
     app.add_handler(MessageHandler(filters.Regex("^(كشف البوتات|كشف البوت|كشف)$") & G, handle_detect_bots), group=10)
     app.add_handler(MessageHandler(filters.Regex("^رفع الادمنيه$") & G, handle_promote_all_admins), group=10)

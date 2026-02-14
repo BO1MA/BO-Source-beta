@@ -167,13 +167,25 @@ async def handle_say(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def handle_who_is(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """مين — randomly pick someone from the group."""
     chat_id = update.effective_chat.id
+    text = (update.message.text or "").strip()
+
+    # If "مين" is followed by text, pick from group members
+    arg = text.replace("مين", "", 1).strip()
+
     try:
         admins = await context.bot.get_chat_administrators(chat_id)
-        if admins:
-            chosen = random.choice(admins)
-            await update.message.reply_text(
-                f"✯ الاختيار العشوائي: {chosen.user.first_name}"
-            )
+        # Gather all admin members (non-bot) as pool
+        members = [a.user for a in admins if not a.user.is_bot]
+        if members:
+            chosen = random.choice(members)
+            if arg:
+                await update.message.reply_text(
+                    f"✯ {arg}: {chosen.first_name}"
+                )
+            else:
+                await update.message.reply_text(
+                    f"✯ الاختيار العشوائي: {chosen.first_name}"
+                )
         else:
             await update.message.reply_text("✯ لا يمكن اختيار شخص")
     except Exception:
@@ -228,6 +240,6 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^(اعلام|دول|اعلام ودول|اعلام و دول)$") & G, handle_country_flag), group=16)
     app.add_handler(MessageHandler(filters.Regex("^علم ") & G, handle_country_flag), group=16)
     app.add_handler(MessageHandler(filters.Regex("^قول ") & G, handle_say), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^مين$") & G, handle_who_is), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^مين( |$)") & G, handle_who_is), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(الوقت|الساعه)$") & G, handle_time), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(خيروك|لو خيروك)$") & G, handle_would_you_rather), group=16)

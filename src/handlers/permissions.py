@@ -124,6 +124,14 @@ async def handle_toggle_callback(update: Update, context: ContextTypes.DEFAULT_T
     msg = MSG_ENABLED if new_value else MSG_DISABLED
     await query.message.reply_text(msg.format(feature=feature))
 
+    # Update the keyboard to reflect new state
+    try:
+        await query.message.edit_reply_markup(
+            reply_markup=build_settings_keyboard(chat_id)
+        )
+    except Exception:
+        pass
+
 
 @group_only
 async def handle_pin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -213,7 +221,7 @@ async def handle_set_rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     # Strip all possible trigger prefixes
     rules = text
-    for prefix in ("ضع قوانين", "القوانين"):
+    for prefix in ("ضع قوانين",):
         if rules.startswith(prefix):
             rules = rules[len(prefix):].strip()
             break
@@ -267,7 +275,11 @@ async def handle_set_farewell(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text(MSG_NO_PERMISSION)
         return
 
-    farewell_text = text.replace("المغادره", "", 1).strip()
+    farewell_text = text
+    for prefix in ("ضع مغادره", "المغادره"):
+        if farewell_text.startswith(prefix):
+            farewell_text = farewell_text[len(prefix):].strip()
+            break
     if farewell_text:
         settings = group_svc.get_settings(chat_id)
         settings.farewell_text = farewell_text
@@ -295,11 +307,11 @@ async def handle_set_force_channel(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("❖ الاستخدام: تغيير الاشتراك الاجباري @channel_username")
         return
 
-    channel = arg.lstrip("@")
+    channel = arg if arg.startswith("@") else f"@{arg}"
     settings = group_svc.get_settings(chat_id)
     settings.force_subscribe_channel = channel
     group_svc.save_settings(chat_id, settings)
-    await update.message.reply_text(f"❖ تم تعيين قناة الاشتراك الاجباري: @{channel} ✅")
+    await update.message.reply_text(f"❖ تم تعيين قناة الاشتراك الاجباري: {channel} ✅")
 
 
 @group_only
@@ -415,18 +427,24 @@ async def handle_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             "اذاعه بالتوجيه (رد على رساله)"
         )
     elif data == "menu:settings":
-        chat_id = query.message.chat.id
-        await query.message.reply_text(
-            "\u2756 الاعدادات:",
-            reply_markup=build_settings_keyboard(chat_id),
-        )
+        chat = query.message.chat
+        if chat.type in ("group", "supergroup"):
+            await query.message.reply_text(
+                "\u2756 الاعدادات:",
+                reply_markup=build_settings_keyboard(chat.id),
+            )
+        else:
+            await query.message.reply_text("\u2756 هذا الامر يعمل في المجموعات فقط")
     elif data == "menu:protection":
-        chat_id = query.message.chat.id
+        chat = query.message.chat
         from src.utils.keyboard import build_protection_keyboard
-        await query.message.reply_text(
-            "\u2756 الحمايه:",
-            reply_markup=build_protection_keyboard(chat_id),
-        )
+        if chat.type in ("group", "supergroup"):
+            await query.message.reply_text(
+                "\u2756 الحمايه:",
+                reply_markup=build_protection_keyboard(chat.id),
+            )
+        else:
+            await query.message.reply_text("\u2756 هذا الامر يعمل في المجموعات فقط")
     elif data == "menu:developer":
         from src.config import Config
         from src.constants.messages import MSG_DEVELOPER_INFO
@@ -454,8 +472,8 @@ def register(app: Application) -> None:
     # Welcome / Farewell / Rules
     app.add_handler(MessageHandler(filters.Regex("^(الترحيب|ضع ترحيب)") & G, handle_set_welcome), group=7)
     app.add_handler(MessageHandler(filters.Regex("^(حذف الترحيب|مسح الترحيب)$") & G, handle_delete_welcome), group=7)
-    app.add_handler(MessageHandler(filters.Regex("^المغادره") & G, handle_set_farewell), group=7)
-    app.add_handler(MessageHandler(filters.Regex("^(القوانين|ضع قوانين)") & G, handle_set_rules), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(المغادره|ضع مغادره)") & G, handle_set_farewell), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^ضع قوانين") & G, handle_set_rules), group=7)
     app.add_handler(MessageHandler(filters.Regex("^(حذف القوانين|مسح القوانين)$") & G, handle_delete_rules), group=7)
 
     # Force subscribe

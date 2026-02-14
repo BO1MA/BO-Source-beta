@@ -9,12 +9,13 @@ import re
 import logging
 
 from telegram import Update
-from telegram.ext import Application, ContextTypes, MessageHandler, CallbackQueryHandler, filters
+from telegram.ext import Application, ApplicationHandlerStop, ContextTypes, MessageHandler, CallbackQueryHandler, filters
 
 from src.config import Config
 from src.constants.messages import (
     MSG_LOCKED, MSG_UNLOCKED, MSG_NO_PERMISSION, MSG_BOT_NOT_ADMIN,
     MSG_WARNED, MSG_KICKED, MSG_MUTED, MSG_BANNED, MSG_WARN_LIMIT,
+    MSG_FORCE_SUBSCRIBE,
     contains_bad_word,
 )
 from src.constants.commands import LOCK_FEATURES, LOCK_PUNISHMENTS, LOCK_ALIASES
@@ -27,6 +28,7 @@ from src.utils.text_utils import (
 )
 from src.utils.api_helpers import (
     is_bot_admin, delete_message_safe, kick_member, mute_member, ban_member,
+    check_channel_membership,
 )
 from src.utils.keyboard import build_lock_keyboard, build_protection_keyboard
 
@@ -264,6 +266,11 @@ async def enforce_locks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # ── Check content type locks (photo, video, sticker, etc.) ──
     if content_type and content_type in locks:
         violated_feature = content_type
+    # Also check gif → animation alias
+    elif content_type == "animation" and "gif" in locks:
+        violated_feature = "gif"
+    elif content_type == "gif" and "animation" in locks:
+        violated_feature = "animation"
 
     # ── Check forwarded messages ──
     elif message.forward_date and "forward" in locks:
@@ -364,6 +371,9 @@ async def enforce_locks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             chat_id, MSG_BANNED.format(name=target.full_name) + f"\n✯ السبب: {feature_name}"
         )
 
+    # Stop further handler processing for this update
+    raise ApplicationHandlerStop()
+
 
 async def enforce_edit_lock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """If 'edit' lock is active, delete edited messages from non-admins."""
@@ -387,9 +397,87 @@ async def enforce_edit_lock(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await delete_message_safe(context.bot, chat_id, update.edited_message.message_id)
 
 
+async def enforce_global_and_subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Enforce global ban/mute and force subscribe on every incoming group message.
+    Runs at group=2 so it fires before most handlers."""
+    if not update.message or not update.effective_chat:
+        return
+    if update.effective_chat.type not in ("group", "supergroup"):
+        return
+    if not update.effective_user:
+        return
+
+    chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
+
+    # Skip admins and sudo
+    if user_svc.is_group_admin(user_id, chat_id) or user_svc.is_sudo(user_id):
+        return
+
+    # ── Global ban enforcement ──
+    if user_svc.is_global_banned(user_id):
+        if await is_bot_admin(context.bot, chat_id):
+            await delete_message_safe(context.bot, chat_id, update.message.message_id)
+            await ban_member(context.bot, chat_id, user_id)
+            raise ApplicationHandlerStop()
+
+    # ── Global mute enforcement ──
+    user_obj = user_svc.get_user(user_id)
+    if user_obj.is_global_muted:
+        if await is_bot_admin(context.bot, chat_id):
+            await delete_message_safe(context.bot, chat_id, update.message.message_id)
+            await mute_member(context.bot, chat_id, user_id)
+            raise ApplicationHandlerStop()
+
+    # ── Force subscribe enforcement ──
+    settings = group_svc.get_settings(chat_id)
+    if settings.force_subscribe_enabled and settings.force_subscribe_channel:
+        try:
+            channel_ref = settings.force_subscribe_channel
+            # Try numeric channel ID first, then username
+            if channel_ref.lstrip('-').isdigit():
+                channel_id = int(channel_ref)
+            else:
+                channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+
+            if not await check_channel_membership(context.bot, channel_id, user_id):
+                channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+                await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
+                await delete_message_safe(context.bot, chat_id, update.message.message_id)
+                raise ApplicationHandlerStop()
+        except ApplicationHandlerStop:
+            raise
+        except Exception:
+            pass
+
+
+@group_only
+async def handle_list_restricted(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """المقيدين — list restricted/muted users in the group."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    muted_ids = user_svc.list_muted(chat_id)
+    if muted_ids:
+        lines = ["✯ المقيدين:"]
+        for i, uid in enumerate(muted_ids, 1):
+            user = user_svc.get_user(uid)
+            lines.append(f"{i}. {user.full_name} [{uid}]")
+        await update.message.reply_text("\n".join(lines))
+    else:
+        await update.message.reply_text("✯ لا يوجد مقيدين")
+
+
 def register(app: Application) -> None:
     """Register lock handlers."""
     G = filters.ChatType.GROUPS
+
+    # Global ban/mute + force subscribe enforcement — group 2 (before locks at 1)
+    app.add_handler(MessageHandler(filters.ALL & G, enforce_global_and_subscribe), group=0)
 
     # Lock enforcement — highest priority (group=1) to intercept before other handlers
     app.add_handler(MessageHandler(filters.ALL & G, enforce_locks), group=1)
@@ -403,6 +491,12 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(
         filters.Regex("^(اعدادات الحمايه|الحمايه)$") & G,
         handle_protection_settings,
+    ), group=6)
+
+    # Restricted users list
+    app.add_handler(MessageHandler(
+        filters.Regex("^(المقيدين|كشف القيود)$") & G,
+        handle_list_restricted,
     ), group=6)
 
     # Callback queries

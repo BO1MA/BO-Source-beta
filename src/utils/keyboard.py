@@ -25,15 +25,22 @@ def build_inline_keyboard(
 
 
 def build_settings_keyboard(chat_id: int) -> InlineKeyboardMarkup:
-    """Build the group settings toggle keyboard."""
+    """Build the group settings toggle keyboard with current state indicators."""
+    from src.services.group_service import GroupService
+    group_svc = GroupService()
+    settings = group_svc.get_settings(chat_id)
+
+    def icon(enabled: bool) -> str:
+        return "\u2705" if enabled else "\u274C"
+
     buttons = [
-        ("\u2705 الترحيب", f"toggle:{chat_id}:welcome_enabled"),
-        ("\u2705 المغادره", f"toggle:{chat_id}:farewell_enabled"),
-        ("\U0001F3AE الالعاب", f"toggle:{chat_id}:games_enabled"),
-        ("\U0001F4E2 الاذاعه", f"toggle:{chat_id}:broadcast_enabled"),
-        ("\U0001F3F7 التاغ", f"toggle:{chat_id}:tag_enabled"),
-        ("\U0001F512 الاشتراك الاجباري", f"toggle:{chat_id}:force_subscribe_enabled"),
-        ("\U0001F6E1 الحمايه", f"toggle:{chat_id}:protection_enabled"),
+        (f"{icon(settings.welcome_enabled)} الترحيب", f"toggle:{chat_id}:welcome_enabled"),
+        (f"{icon(settings.farewell_enabled)} المغادره", f"toggle:{chat_id}:farewell_enabled"),
+        (f"{icon(settings.games_enabled)} الالعاب", f"toggle:{chat_id}:games_enabled"),
+        (f"{icon(settings.broadcast_enabled)} الاذاعه", f"toggle:{chat_id}:broadcast_enabled"),
+        (f"{icon(settings.tag_enabled)} التاغ", f"toggle:{chat_id}:tag_enabled"),
+        (f"{icon(settings.force_subscribe_enabled)} الاشتراك الاجباري", f"toggle:{chat_id}:force_subscribe_enabled"),
+        (f"{icon(settings.protection_enabled)} الحمايه", f"toggle:{chat_id}:protection_enabled"),
     ]
     return build_inline_keyboard(buttons, columns=2)
 

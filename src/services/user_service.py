@@ -104,19 +104,44 @@ class UserService:
     def list_users_by_role(self, role: int, chat_id: int | None = None) -> list[User]:
         """Return all users with a specific role."""
         results = []
+        seen_ids = set()
         if chat_id:
+            # Check group-level roles
             pattern = f"bot:group:{chat_id}:user:*"
             for key in self.redis.keys(pattern):
                 data = self.redis.hgetall(key)
-                if data and int(data.get("role", ROLE_MEMBER)) == role:
+                try:
+                    stored_role = int(data.get("role", ROLE_MEMBER))
+                except (ValueError, TypeError):
+                    stored_role = ROLE_MEMBER
+                if stored_role == role:
                     uid = int(key.rsplit(":", 1)[-1])
+                    seen_ids.add(uid)
                     user = self.get_user(uid)
                     results.append(user)
+
+            # Also check global roles (sudo/developer roles stored globally)
+            global_pattern = f"{_PREFIX}*"
+            for key in self.redis.keys(global_pattern):
+                data = self.redis.hgetall(key)
+                try:
+                    stored_role = int(data.get("role", ROLE_MEMBER))
+                except (ValueError, TypeError):
+                    stored_role = ROLE_MEMBER
+                if stored_role == role:
+                    uid = int(key.rsplit(":", 1)[-1])
+                    if uid not in seen_ids:
+                        seen_ids.add(uid)
+                        results.append(User.from_dict(data))
         else:
             pattern = f"{_PREFIX}*"
             for key in self.redis.keys(pattern):
                 data = self.redis.hgetall(key)
-                if data and int(data.get("role", ROLE_MEMBER)) == role:
+                try:
+                    stored_role = int(data.get("role", ROLE_MEMBER))
+                except (ValueError, TypeError):
+                    stored_role = ROLE_MEMBER
+                if stored_role == role:
                     results.append(User.from_dict(data))
         return results
 

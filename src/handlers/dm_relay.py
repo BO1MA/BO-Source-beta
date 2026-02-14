@@ -115,9 +115,10 @@ def register(app: Application) -> None:
     )
 
     # User → Developer relay (catch-all private messages, lowest priority)
+    # Allow all messages including commands (except /start which is handled separately)
     app.add_handler(
         MessageHandler(
-            filters.ChatType.PRIVATE & ~filters.COMMAND & ~filters.User(Config.SUDO_ID),
+            filters.ChatType.PRIVATE & ~filters.User(Config.SUDO_ID) & ~filters.Regex("^/start"),
             _relay_to_developer,
         ),
         group=111,

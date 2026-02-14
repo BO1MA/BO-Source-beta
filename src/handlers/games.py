@@ -68,10 +68,15 @@ async def _check_games_enabled(update, context) -> bool:
 
     if settings.force_subscribe_enabled and settings.force_subscribe_channel:
         try:
-            channel_id = int(settings.force_subscribe_channel) if settings.force_subscribe_channel.lstrip('-').isdigit() else Config.CHANNEL_ID
+            channel_ref = settings.force_subscribe_channel
+            # Try numeric channel ID first, then username
+            if channel_ref.lstrip('-').isdigit():
+                channel_id = int(channel_ref)
+            else:
+                channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
             if not await check_channel_membership(context.bot, channel_id, user_id):
-                channel_name = settings.force_subscribe_channel if settings.force_subscribe_channel.startswith("@") else Config.CHANNEL_USERNAME
-                await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_name))
+                channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+                await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
                 return False
         except Exception:
             pass
