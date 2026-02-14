@@ -47,7 +47,8 @@ def group_only(func: Callable):
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         if update.effective_chat and update.effective_chat.type in ("group", "supergroup"):
             return await func(update, context, *args, **kwargs)
-        await update.effective_message.reply_text(MSG_GROUP_ONLY)
+        if update.effective_message:
+            await update.effective_message.reply_text(MSG_GROUP_ONLY)
     return wrapper
 
 
@@ -57,7 +58,8 @@ def private_only(func: Callable):
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         if update.effective_chat and update.effective_chat.type == "private":
             return await func(update, context, *args, **kwargs)
-        await update.effective_message.reply_text(MSG_PRIVATE_ONLY)
+        if update.effective_message:
+            await update.effective_message.reply_text(MSG_PRIVATE_ONLY)
     return wrapper
 
 

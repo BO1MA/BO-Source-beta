@@ -183,7 +183,12 @@ async def handle_set_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text(MSG_NO_PERMISSION)
         return
 
-    welcome_text = text.replace("الترحيب", "", 1).strip()
+    # Strip all possible trigger prefixes
+    welcome_text = text
+    for prefix in ("ضع ترحيب", "الترحيب"):
+        if welcome_text.startswith(prefix):
+            welcome_text = welcome_text[len(prefix):].strip()
+            break
     if welcome_text:
         settings = group_svc.get_settings(chat_id)
         settings.welcome_text = welcome_text
@@ -206,7 +211,12 @@ async def handle_set_rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text(MSG_NO_PERMISSION)
         return
 
-    rules = text.replace("القوانين", "", 1).strip()
+    # Strip all possible trigger prefixes
+    rules = text
+    for prefix in ("ضع قوانين", "القوانين"):
+        if rules.startswith(prefix):
+            rules = rules[len(prefix):].strip()
+            break
     if rules:
         settings = group_svc.get_settings(chat_id)
         settings.rules_text = rules
@@ -303,12 +313,10 @@ async def handle_group_permissions(update: Update, context: ContextTypes.DEFAULT
         return
 
     from src.constants.commands import LOCK_FEATURES
-    from src.services.redis_service import RedisService
-    redis = RedisService()
 
     lines = ["❖ صلاحيات الجروب 🔒:"]
     for feature_key, feature_name in LOCK_FEATURES.items():
-        locked = redis.client.sismember(f"locks:{chat_id}", feature_key)
+        locked = group_svc.is_locked(chat_id, feature_key)
         status = "🔒 مقفل" if locked else "🔓 مفتوح"
         lines.append(f"  {status} — {feature_name}")
 
@@ -324,29 +332,35 @@ async def handle_my_permissions(update: Update, context: ContextTypes.DEFAULT_TY
     from src.constants.roles import (
         ROLE_MEMBER, ROLE_VIP, ROLE_ADMIN, ROLE_MANAGER,
         ROLE_CREATOR, ROLE_MAIN_CREATOR, ROLE_OWNER,
-        ROLE_NAMES,
+        ROLE_NAMES, ROLE_HIERARCHY, SUDO_ROLES, GROUP_ADMIN_ROLES,
     )
 
     role = user_svc.get_role(from_user.id, chat_id)
     role_name = ROLE_NAMES.get(role, "عضو")
 
+    # Use hierarchy index for comparison (lower index = higher privilege)
+    try:
+        role_idx = ROLE_HIERARCHY.index(role)
+    except ValueError:
+        role_idx = len(ROLE_HIERARCHY)  # unknown role = lowest
+
     perms = ["❖ صلاحياتك:"]
     perms.append(f"📌 رتبتك: {role_name}")
     perms.append("")
 
-    if role <= ROLE_VIP:
+    if role_idx <= ROLE_HIERARCHY.index(ROLE_VIP):
         perms.append("✅ محمي من الحظر والكتم")
-    if role <= ROLE_ADMIN:
+    if role_idx <= ROLE_HIERARCHY.index(ROLE_ADMIN):
         perms.append("✅ حظر / كتم / طرد / تحذير")
         perms.append("✅ تثبيت / الغاء تثبيت")
         perms.append("✅ قفل / فتح")
-    if role <= ROLE_MANAGER:
+    if role_idx <= ROLE_HIERARCHY.index(ROLE_MANAGER):
         perms.append("✅ ترقية وتنزيل الاعضاء")
         perms.append("✅ اعدادات الجروب")
-    if role <= ROLE_CREATOR:
+    if role_idx <= ROLE_HIERARCHY.index(ROLE_CREATOR):
         perms.append("✅ الاذاعه")
         perms.append("✅ اضافة اوامر")
-    if role <= ROLE_OWNER:
+    if role_idx <= ROLE_HIERARCHY.index(ROLE_OWNER):
         perms.append("✅ تعيين مالكين ومنشئين")
     if role == ROLE_MEMBER:
         perms.append("📝 عضو عادي — لا صلاحيات ادارية")

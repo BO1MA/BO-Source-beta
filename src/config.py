@@ -16,19 +16,19 @@ class Config:
     BOT_NAME: str = os.getenv("BOT_NAME", "MyBot")
 
     # ── Developer ──
-    SUDO_ID: int = int(os.getenv("SUDO_ID", "0"))
+    SUDO_ID: int = int(os.getenv("SUDO_ID", "") or "0")
     SUDO_USERNAME: str = os.getenv("SUDO_USERNAME", "")
 
     # ── Redis (supports Vercel KV env vars automatically) ──
     REDIS_URL: str = os.getenv("REDIS_URL", "") or os.getenv("KV_URL", "")
     REDIS_HOST: str = os.getenv("REDIS_HOST", "127.0.0.1")
-    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
-    REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "") or "6379")
+    REDIS_DB: int = int(os.getenv("REDIS_DB", "") or "0")
     REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "")
 
     # ── Channel (force subscribe) ──
     CHANNEL_USERNAME: str = os.getenv("CHANNEL_USERNAME", "")
-    CHANNEL_ID: int = int(os.getenv("CHANNEL_ID", "0"))
+    CHANNEL_ID: int = int(os.getenv("CHANNEL_ID", "") or "0")
 
     # ── YouTube ──
     YT_COOKIES_PATH: str = os.getenv("YT_COOKIES_PATH", "")

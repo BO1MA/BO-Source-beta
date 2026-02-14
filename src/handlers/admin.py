@@ -18,7 +18,7 @@ from src.constants.roles import (
     ROLE_SECONDARY_DEVELOPER, ROLE_ASSISTANT, ROLE_DEVELOPER, ROLE_OWNER,
     ROLE_MAIN_CREATOR, ROLE_CREATOR, ROLE_MANAGER, ROLE_ADMIN, ROLE_VIP,
     ROLE_MEMBER, ROLE_HIERARCHY, get_role_name, is_higher_role,
-    ROLE_NAMES,
+    ROLE_NAMES, SUDO_ROLES, GROUP_ADMIN_ROLES,
 )
 from src.services.user_service import UserService
 from src.services.group_service import GroupService
@@ -533,7 +533,7 @@ async def handle_promote_all_admins(update: Update, context: ContextTypes.DEFAUL
     for key in redis_svc.keys(pattern):
         data = redis_svc.hgetall(key)
         role = int(data.get("role", ROLE_MEMBER))
-        if role >= ROLE_ADMIN:
+        if role != ROLE_MEMBER and (role in GROUP_ADMIN_ROLES or role in SUDO_ROLES):
             uid = int(key.split(":")[-1])
             try:
                 await promote_member(context.bot, chat_id, uid)
@@ -558,7 +558,7 @@ async def handle_lift_restrictions(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
         return
 
-    target_id = extract_user_id(update)
+    target_id = extract_user_id(update.message)
     if not target_id:
         await update.message.reply_text(MSG_USER_NOT_FOUND)
         return
@@ -569,7 +569,12 @@ async def handle_lift_restrictions(update: Update, context: ContextTypes.DEFAULT
             chat_id, target_id,
             permissions=ChatPermissions(
                 can_send_messages=True,
-                can_send_media_messages=True,
+                can_send_photos=True,
+                can_send_videos=True,
+                can_send_video_notes=True,
+                can_send_voice_notes=True,
+                can_send_documents=True,
+                can_send_audios=True,
                 can_send_polls=True,
                 can_send_other_messages=True,
                 can_add_web_page_previews=True,

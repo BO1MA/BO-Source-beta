@@ -22,8 +22,12 @@ class GroupSettings:
     locks: dict[str, str] = field(default_factory=dict)
     # Custom welcome text
     welcome_text: str = ""
+    # Custom farewell text
+    farewell_text: str = ""
     # Group rules
     rules_text: str = ""
+    # Auto clean
+    auto_clean_enabled: bool = False
     # Flood settings
     flood_limit: int = 10
     flood_interval: int = 5  # seconds
@@ -41,7 +45,9 @@ class GroupSettings:
             "force_subscribe_channel": self.force_subscribe_channel,
             "protection_enabled": self.protection_enabled,
             "locks": self.locks,
+            "auto_clean_enabled": self.auto_clean_enabled,
             "welcome_text": self.welcome_text,
+            "farewell_text": self.farewell_text,
             "rules_text": self.rules_text,
             "flood_limit": self.flood_limit,
             "flood_interval": self.flood_interval,
@@ -60,7 +66,9 @@ class GroupSettings:
             force_subscribe_channel=data.get("force_subscribe_channel", ""),
             protection_enabled=_bool(data.get("protection_enabled", False)),
             locks=data.get("locks", {}),
+            auto_clean_enabled=_bool(data.get("auto_clean_enabled", False)),
             welcome_text=data.get("welcome_text", ""),
+            farewell_text=data.get("farewell_text", ""),
             rules_text=data.get("rules_text", ""),
             flood_limit=int(data.get("flood_limit", 10)),
             flood_interval=int(data.get("flood_interval", 5)),

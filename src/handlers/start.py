@@ -71,7 +71,8 @@ async def farewell_member(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     left = update.message.left_chat_member
     if left and not left.is_bot:
-        await update.message.reply_text(MSG_FAREWELL.format(name=left.first_name))
+        farewell_text = settings.farewell_text or MSG_FAREWELL
+        await update.message.reply_text(farewell_text.format(name=left.first_name))
 
 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

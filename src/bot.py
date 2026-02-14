@@ -44,6 +44,7 @@ def main() -> None:
         drop_pending_updates=True,
         allowed_updates=[
             "message",
+            "edited_message",
             "callback_query",
             "chat_member",
             "my_chat_member",

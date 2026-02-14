@@ -490,7 +490,7 @@ async def handle_game_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         "game:riddle": "ارسل 'حزوره' لبدء اللعبه",
         "game:meaning": "ارسل 'معاني' لبدء اللعبه",
         "game:ring": "ارسل 'محيبس' لبدء اللعبه",
-        "game:diff": "ارسل 'المختلف' لبدء اللعبه",
+        "game:different": "ارسل 'المختلف' لبدء اللعبه",
         "game:math": "ارسل 'رياضيات' لبدء اللعبه",
         "game:english": "ارسل 'انكليزي' لبدء اللعبه",
         "game:proverb": "ارسل 'امثله' لبدء اللعبه",
