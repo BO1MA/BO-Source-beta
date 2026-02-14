@@ -32,11 +32,15 @@ class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             # Determine the deployment URL
-            vercel_url = os.getenv("VERCEL_URL", "")
+            # Priority: WEBHOOK_DOMAIN > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL
             custom_domain = os.getenv("WEBHOOK_DOMAIN", "")
+            production_url = os.getenv("VERCEL_PROJECT_PRODUCTION_URL", "")
+            vercel_url = os.getenv("VERCEL_URL", "")
 
             if custom_domain:
                 domain = custom_domain
+            elif production_url:
+                domain = production_url
             elif vercel_url:
                 domain = vercel_url
             else:
