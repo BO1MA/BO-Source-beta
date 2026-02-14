@@ -178,7 +178,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if text in ("المبرمج", "السورس", "سورس", "مطور", "مطور البوت",
-                 "المبرمج باندا", "المبرمج بودي", "المبرمج مصطفي"):
+                 "المبرمج أشموديل", "المبرمج إيمو", "المبرمج احمد"):
         await update.message.reply_text(MSG_DEVELOPER_INFO.format(developer=Config.SUDO_USERNAME))
         return
 
