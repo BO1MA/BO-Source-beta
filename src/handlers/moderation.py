@@ -307,6 +307,32 @@ async def handle_list_muted(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 @group_only
+async def handle_list_global_banned(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """List all globally banned users."""
+    from_user = update.effective_user
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    banned_ids = user_svc.list_global_banned()
+    users = [user_svc.get_user(uid) for uid in banned_ids]
+    await update.message.reply_text(format_user_list(users, "المحظورين عام"))
+
+
+@group_only
+async def handle_list_global_muted(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """List all globally muted users."""
+    from_user = update.effective_user
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    muted_ids = user_svc.list_global_muted()
+    users = [user_svc.get_user(uid) for uid in muted_ids]
+    await update.message.reply_text(format_user_list(users, "المكتومين عام"))
+
+
+@group_only
 async def handle_global_unmute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Unmute a user from all groups."""
     from_user = update.effective_user
@@ -366,6 +392,8 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^اطردني$") & G, handle_kick_self), group=5)
     app.add_handler(MessageHandler(filters.Regex("^تحذير( |$)") & G, handle_warn), group=5)
     app.add_handler(MessageHandler(filters.Regex("^الغاء تحذير( |$)") & G, handle_unwarn), group=5)
+    app.add_handler(MessageHandler(filters.Regex("^المحظورين عام$") & G, handle_list_global_banned), group=5)
+    app.add_handler(MessageHandler(filters.Regex("^المكتومين عام$") & G, handle_list_global_muted), group=5)
     app.add_handler(MessageHandler(filters.Regex("^المحظورين$") & G, handle_list_banned), group=5)
     app.add_handler(MessageHandler(filters.Regex("^المكتومين$") & G, handle_list_muted), group=5)
     app.add_handler(MessageHandler(filters.Regex("^حذف$") & G, handle_delete_message), group=5)

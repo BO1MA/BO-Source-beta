@@ -493,16 +493,16 @@ def register(app: Application) -> None:
             handle_promote,
         ), group=10)
 
+    # Demote all (MUST be registered BEFORE general demote to match first)
+    app.add_handler(MessageHandler(
+        filters.Regex("^تنزيل الكل$") & G,
+        handle_demote_all,
+    ), group=10)
+
     # Demote commands
     app.add_handler(MessageHandler(
         filters.Regex("^(تنزيل|عزل)( |$)") & G,
         handle_demote,
-    ), group=10)
-
-    # Demote all
-    app.add_handler(MessageHandler(
-        filters.Regex("^تنزيل الكل$") & G,
-        handle_demote_all,
     ), group=10)
 
     # Role listing

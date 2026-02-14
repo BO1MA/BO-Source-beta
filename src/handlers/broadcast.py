@@ -38,6 +38,7 @@ async def handle_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     pin = False
     forward = False
     private = False
+    groups_only = False
 
     if text.startswith("اذاعه بالتثبيت"):
         pin = True
@@ -48,13 +49,15 @@ async def handle_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         forward = True
     elif text.startswith("اذاعه خاص"):
         private = True
+    elif text.startswith("اذاعه للمجموعات"):
+        groups_only = True
 
     # Determine content to broadcast
     broadcast_msg = None
     if update.message.reply_to_message:
         broadcast_msg = update.message.reply_to_message
     else:
-        for prefix in ("اذاعه بالتثبيت", "اذاعه بالتوجيه خاص", "اذاعه بالتوجيه", "اذاعه خاص", "اذاعه"):
+        for prefix in ("اذاعه بالتثبيت", "اذاعه بالتوجيه خاص", "اذاعه بالتوجيه", "اذاعه للمجموعات", "اذاعه خاص", "اذاعه"):
             if text.startswith(prefix):
                 content = text[len(prefix):].strip()
                 if content:
@@ -106,9 +109,11 @@ async def handle_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         for gid in group_ids:
             try:
-                settings = group_svc.get_settings(gid)
-                if not settings.broadcast_enabled:
-                    continue
+                # groups_only mode ignores broadcast_enabled setting
+                if not groups_only:
+                    settings = group_svc.get_settings(gid)
+                    if not settings.broadcast_enabled:
+                        continue
 
                 if forward and hasattr(broadcast_msg, 'message_id'):
                     await context.bot.forward_message(

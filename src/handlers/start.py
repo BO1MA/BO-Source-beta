@@ -331,6 +331,26 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text(f"✯ وصف الجروب:\n{desc}")
         return
 
+    # ── ستارت — Arabic start alias ──
+    if text == "ستارت":
+        user_svc.register_user(user.id)
+        start_text = MSG_START.format(name=user.first_name, developer=Config.SUDO_USERNAME)
+        await update.message.reply_text(start_text, reply_markup=build_main_menu_keyboard())
+        return
+
+    # ── السيرفر — server info ──
+    if text == "السيرفر":
+        import platform
+        import sys as _sys
+        await update.message.reply_text(
+            f"✯ معلومات السيرفر:\n"
+            f"✯ النظام: {platform.system()} {platform.release()}\n"
+            f"✯ بايثون: {_sys.version.split()[0]}\n"
+            f"✯ المعالج: {platform.machine()}\n"
+            f"✯ الاستضافه: Vercel Serverless"
+        )
+        return
+
     if text in ("القائمه", "الاوامر"):
         await update.message.reply_text(
             "\u2756 القائمه الرئيسيه \u2756",

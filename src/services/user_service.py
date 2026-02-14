@@ -164,6 +164,26 @@ class UserService:
                 muted.append(int(key.rsplit(":", 1)[-1]))
         return muted
 
+    def list_global_banned(self) -> list[int]:
+        """List all globally banned users."""
+        banned = []
+        for uid_str in self.redis.smembers("bot:users"):
+            uid = int(uid_str)
+            user = self.get_user(uid)
+            if user.is_global_banned:
+                banned.append(uid)
+        return banned
+
+    def list_global_muted(self) -> list[int]:
+        """List all globally muted users."""
+        muted = []
+        for uid_str in self.redis.smembers("bot:users"):
+            uid = int(uid_str)
+            user = self.get_user(uid)
+            if user.is_global_muted:
+                muted.append(uid)
+        return muted
+
     # ── Mute ──
 
     def mute_user(self, user_id: int, chat_id: int) -> None:
