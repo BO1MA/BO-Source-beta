@@ -19,8 +19,8 @@ class Config:
     SUDO_ID: int = int(os.getenv("SUDO_ID", "0"))
     SUDO_USERNAME: str = os.getenv("SUDO_USERNAME", "")
 
-    # ── Redis ──
-    REDIS_URL: str = os.getenv("REDIS_URL", "")  # Full URL (e.g. rediss://... for Upstash)
+    # ── Redis (supports Vercel KV env vars automatically) ──
+    REDIS_URL: str = os.getenv("REDIS_URL", "") or os.getenv("KV_URL", "")
     REDIS_HOST: str = os.getenv("REDIS_HOST", "127.0.0.1")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
     REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
