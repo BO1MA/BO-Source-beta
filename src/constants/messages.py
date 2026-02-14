@@ -3,6 +3,7 @@ Arabic and English message templates used throughout the bot.
 Ported from the Lua bot's message system — full data arrays for games,
 fun commands, greetings, riddles, proverbs, etc.
 """
+from __future__ import annotations
 import random
 
 # ── Start / Welcome ──

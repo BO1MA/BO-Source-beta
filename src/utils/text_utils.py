@@ -1,6 +1,8 @@
 """
 Text utility functions used across the bot.
 """
+from __future__ import annotations
+
 import re
 from telegram import Message, Update
 

@@ -1,6 +1,8 @@
 """
 Telegram API helper functions.
 """
+from __future__ import annotations
+
 import logging
 from telegram import Bot, ChatMember, ChatPermissions
 from telegram.error import TelegramError

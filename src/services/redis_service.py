@@ -2,6 +2,8 @@
 Redis service — wraps redis connection and provides typed helpers.
 Mirrors the Redis usage in bian.lua / AVIRA.lua.
 """
+from __future__ import annotations
+
 import json
 import logging
 from typing import Any

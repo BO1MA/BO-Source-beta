@@ -1,6 +1,8 @@
 """
 Inline keyboard builders for various bot menus.
 """
+from __future__ import annotations
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from src.constants.commands import LOCK_FEATURES
 

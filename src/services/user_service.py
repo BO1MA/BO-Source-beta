@@ -2,6 +2,8 @@
 User service — CRUD for user data stored in Redis.
 Mirrors the role/ban/mute system from bian.lua.
 """
+from __future__ import annotations
+
 import json
 import logging
 from typing import Optional

@@ -2,6 +2,8 @@
 Command definitions mapping Arabic text commands to handler keys.
 Based on bian_commands.txt and bian.lua command routing.
 """
+from __future__ import annotations
+
 
 # Arabic commands → handler function key
 COMMANDS: dict[str, list[str]] = {
