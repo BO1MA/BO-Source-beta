@@ -1,0 +1,77 @@
+{
+  "start": {
+    "triggers": ["/start"],
+    "description": "Start the bot",
+    "description_ar": "بدء البوت"
+  },
+  "tag_all": {
+    "triggers": ["all", "@all"],
+    "description": "Tag all members",
+    "description_ar": "تاغ جميع الاعضاء"
+  },
+  "ban": {
+    "triggers": ["حظر"],
+    "description": "Ban a user",
+    "description_ar": "حظر مستخدم"
+  },
+  "unban": {
+    "triggers": ["الغاء حظر", "الغاء الحظر"],
+    "description": "Unban a user",
+    "description_ar": "الغاء حظر مستخدم"
+  },
+  "mute": {
+    "triggers": ["كتم", "منع"],
+    "description": "Mute a user",
+    "description_ar": "كتم مستخدم"
+  },
+  "unmute": {
+    "triggers": ["الغاء كتم", "الغاء منع"],
+    "description": "Unmute a user",
+    "description_ar": "الغاء كتم مستخدم"
+  },
+  "kick": {
+    "triggers": ["طرد"],
+    "description": "Kick a user",
+    "description_ar": "طرد مستخدم"
+  },
+  "warn": {
+    "triggers": ["تحذير"],
+    "description": "Warn a user",
+    "description_ar": "تحذير مستخدم"
+  },
+  "promote": {
+    "triggers": ["ادمن", "مدير", "منشئ", "مالك", "مميز"],
+    "description": "Promote a user",
+    "description_ar": "ترقية مستخدم"
+  },
+  "demote": {
+    "triggers": ["تنزيل", "عزل"],
+    "description": "Demote a user",
+    "description_ar": "تنزيل مستخدم"
+  },
+  "lock": {
+    "triggers": ["قفل"],
+    "description": "Lock a feature",
+    "description_ar": "قفل ميزه"
+  },
+  "unlock": {
+    "triggers": ["فتح"],
+    "description": "Unlock a feature",
+    "description_ar": "فتح ميزه"
+  },
+  "broadcast": {
+    "triggers": ["اذاعه"],
+    "description": "Broadcast to all groups",
+    "description_ar": "اذاعه لجميع المجموعات"
+  },
+  "games": {
+    "triggers": ["الالعاب", "السمايلات", "تخمين"],
+    "description": "Play games",
+    "description_ar": "العاب"
+  },
+  "youtube": {
+    "triggers": ["بحث يوتيوب", "يوتيوب"],
+    "description": "Search and download YouTube",
+    "description_ar": "بحث وتحميل يوتيوب"
+  }
+}

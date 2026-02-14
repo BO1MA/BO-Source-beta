@@ -1,0 +1,19 @@
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+
+# Dev/test files
+tests/
+.env
+.git/
+.gitignore
+*.md
+setup.py
+
+# Data files not needed at runtime can stay if small
+# data/
+
+# IDE
+.vscode/
+.idea/
