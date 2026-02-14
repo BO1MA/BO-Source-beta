@@ -510,10 +510,10 @@ def register(app: Application) -> None:
 
     # Game starters
     app.add_handler(MessageHandler(filters.Regex("^الالعاب$") & G, handle_games_menu), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^(السمايلات|السمايل)$") & G, handle_emoji_game), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^تخمين$") & G, handle_guess_game), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^(الاسرع|ترتيب)$") & G, handle_fastest), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^الحروف$") & G, handle_letters_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(السمايلات|السمايل|سمايل|سمايلات)$") & G, handle_emoji_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(تخمين|خمن)$") & G, handle_guess_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(الاسرع|ترتيب|ترتيب الاوامر)$") & G, handle_fastest), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(الحروف|حروف|حرف)$") & G, handle_letters_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(حزوره|الحزوره)$") & G, handle_riddle_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(معاني|المعاني)$") & G, handle_meaning_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(محيبس|المحيبس)$") & G, handle_ring_game), group=15)

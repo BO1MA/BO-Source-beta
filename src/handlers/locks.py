@@ -17,7 +17,7 @@ from src.constants.messages import (
     MSG_WARNED, MSG_KICKED, MSG_MUTED, MSG_BANNED, MSG_WARN_LIMIT,
     contains_bad_word,
 )
-from src.constants.commands import LOCK_FEATURES, LOCK_PUNISHMENTS
+from src.constants.commands import LOCK_FEATURES, LOCK_PUNISHMENTS, LOCK_ALIASES
 from src.services.user_service import UserService
 from src.services.group_service import GroupService
 from src.utils.decorators import group_only
@@ -74,12 +74,13 @@ def _parse_lock_args(text: str):
                 break
         arg = " ".join(parts)
 
-    # Match feature
-    feature_key = None
-    for key, arabic in LOCK_FEATURES.items():
-        if arg == arabic or arg == key:
-            feature_key = key
-            break
+    # Match feature (check LOCK_ALIASES first, then LOCK_FEATURES)
+    feature_key = LOCK_ALIASES.get(arg)
+    if not feature_key:
+        for key, arabic in LOCK_FEATURES.items():
+            if arg == arabic or arg == key:
+                feature_key = key
+                break
 
     return feature_key, punishment_key
 
@@ -135,11 +136,12 @@ async def handle_unlock_command(update: Update, context: ContextTypes.DEFAULT_TY
         )
         return
 
-    feature_key = None
-    for key, arabic in LOCK_FEATURES.items():
-        if feature_name == arabic or feature_name == key:
-            feature_key = key
-            break
+    feature_key = LOCK_ALIASES.get(feature_name)
+    if not feature_key:
+        for key, arabic in LOCK_FEATURES.items():
+            if feature_name == arabic or feature_name == key:
+                feature_key = key
+                break
 
     if not feature_key:
         await update.message.reply_text(f"✯ لا يوجد ميزه باسم: {feature_name}")

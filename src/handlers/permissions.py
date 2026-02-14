@@ -39,6 +39,12 @@ TOGGLE_COMMANDS = {
     "تعطيل الترحيب": ("welcome_enabled", False),
     "تفعيل الحمايه": ("protection_enabled", True),
     "تعطيل الحمايه": ("protection_enabled", False),
+    "تفعيل @all": ("tag_enabled", True),
+    "تعطيل @all": ("tag_enabled", False),
+    "تفعيل all": ("tag_enabled", True),
+    "تعطيل all": ("tag_enabled", False),
+    "تفعيل المسح التلقائي": ("auto_clean_enabled", True),
+    "تعطيل المسح التلقائي": ("auto_clean_enabled", False),
 }
 
 
@@ -225,6 +231,22 @@ async def handle_delete_welcome(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 @group_only
+async def handle_delete_rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Delete group rules."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    settings = group_svc.get_settings(chat_id)
+    settings.rules_text = ""
+    group_svc.save_settings(chat_id, settings)
+    await update.message.reply_text("❖ تم حذف القوانين ✅")
+
+
+@group_only
 async def handle_set_farewell(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Set custom farewell text."""
     chat_id = update.effective_chat.id
@@ -286,7 +308,7 @@ async def handle_group_permissions(update: Update, context: ContextTypes.DEFAULT
 
     lines = ["❖ صلاحيات الجروب 🔒:"]
     for feature_key, feature_name in LOCK_FEATURES.items():
-        locked = await redis.client.sismember(f"locks:{chat_id}", feature_key)
+        locked = redis.client.sismember(f"locks:{chat_id}", feature_key)
         status = "🔒 مقفل" if locked else "🔓 مفتوح"
         lines.append(f"  {status} — {feature_name}")
 
@@ -305,7 +327,7 @@ async def handle_my_permissions(update: Update, context: ContextTypes.DEFAULT_TY
         ROLE_NAMES,
     )
 
-    role = user_svc.get_user_role(from_user.id, chat_id)
+    role = user_svc.get_role(from_user.id, chat_id)
     role_name = ROLE_NAMES.get(role, "عضو")
 
     perms = ["❖ صلاحياتك:"]
@@ -416,10 +438,11 @@ def register(app: Application) -> None:
     ), group=7)
 
     # Welcome / Farewell / Rules
-    app.add_handler(MessageHandler(filters.Regex("^الترحيب") & G, handle_set_welcome), group=7)
-    app.add_handler(MessageHandler(filters.Regex("^حذف الترحيب$") & G, handle_delete_welcome), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(الترحيب|ضع ترحيب)") & G, handle_set_welcome), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(حذف الترحيب|مسح الترحيب)$") & G, handle_delete_welcome), group=7)
     app.add_handler(MessageHandler(filters.Regex("^المغادره") & G, handle_set_farewell), group=7)
-    app.add_handler(MessageHandler(filters.Regex("^القوانين") & G, handle_set_rules), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(القوانين|ضع قوانين)") & G, handle_set_rules), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(حذف القوانين|مسح القوانين)$") & G, handle_delete_rules), group=7)
 
     # Force subscribe
     app.add_handler(MessageHandler(filters.Regex("^الاشتراك الاجباري$") & G, handle_force_subscribe_info), group=7)

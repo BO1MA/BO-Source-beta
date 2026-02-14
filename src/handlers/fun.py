@@ -12,7 +12,7 @@ from telegram.ext import Application, ContextTypes, MessageHandler, filters
 from src.constants.messages import (
     get_random_wisdom, get_random_joke, get_random_poetry,
     decorate_text, CHOICES, COUNTRY_FLAGS, BEAUTY_PHRASES,
-    LOVE_PHRASES, HATE_PHRASES,
+    LOVE_PHRASES, HATE_PHRASES, WOULD_YOU_RATHER,
 )
 from src.utils.decorators import group_only
 from src.utils.text_utils import extract_command_arg
@@ -200,22 +200,34 @@ async def handle_time(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     )
 
 
+@group_only
+async def handle_would_you_rather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """خيروك / لو خيروك — would you rather game."""
+    option_a, option_b = random.choice(WOULD_YOU_RATHER)
+    await update.message.reply_text(
+        f"✯ لو خيروك 🤔\n"
+        f"1. {option_a}\n"
+        f"2. {option_b}"
+    )
+
+
 def register(app: Application) -> None:
     """Register fun command handlers."""
     G = filters.ChatType.GROUPS
 
     app.add_handler(MessageHandler(filters.Regex("^حكمه$") & G, handle_wisdom), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^نكته$") & G, handle_joke), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(نكته|عايز اضحك|قولي نكته)$") & G, handle_joke), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(قصيده|شعر)$") & G, handle_poetry), group=16)
     app.add_handler(MessageHandler(filters.Regex("^خيرني") & G, handle_choose), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^زخرفه") & G, handle_decorate), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(زخرفه|زخرف)") & G, handle_decorate), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(نسبه جمالي|نسبة جمالي|جمالي)$") & G, handle_beauty_pct), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(نسبه حب|نسبة حب)$") & G, handle_love_pct), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(نسبه كره|نسبة كره)$") & G, handle_hate_pct), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^تويت") & G, handle_tweet), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^(نصح|نصيحه)$") & G, handle_advice), group=16)
-    app.add_handler(MessageHandler(filters.Regex("^(اعلام|دول)$") & G, handle_country_flag), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(تويت|كت تويت)") & G, handle_tweet), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(نصح|نصيحه|انصح|انصحنى|انصحني)$") & G, handle_advice), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(اعلام|دول|اعلام ودول|اعلام و دول)$") & G, handle_country_flag), group=16)
     app.add_handler(MessageHandler(filters.Regex("^علم ") & G, handle_country_flag), group=16)
     app.add_handler(MessageHandler(filters.Regex("^قول ") & G, handle_say), group=16)
     app.add_handler(MessageHandler(filters.Regex("^مين$") & G, handle_who_is), group=16)
     app.add_handler(MessageHandler(filters.Regex("^(الوقت|الساعه)$") & G, handle_time), group=16)
+    app.add_handler(MessageHandler(filters.Regex("^(خيروك|لو خيروك)$") & G, handle_would_you_rather), group=16)

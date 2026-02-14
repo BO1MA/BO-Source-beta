@@ -15,7 +15,8 @@ from src.config import Config
 from src.constants.messages import (
     MSG_START, MSG_WELCOME, MSG_FAREWELL, MSG_GROUP_INFO, MSG_USER_INFO,
     MSG_DEVELOPER_INFO, MSG_STATS, MSG_NO_RULES,
-    get_greeting_response, get_activity_level,
+    get_greeting_response, get_activity_level, CHAT_RESPONSES,
+    HELP_ADD_COMMANDS, HELP_BROADCAST, HELP_TOGGLE,
 )
 from src.constants.roles import get_role_name, ROLE_NAMES
 from src.services.user_service import UserService
@@ -126,7 +127,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     # ── Info commands ──
-    if text in ("Id", "ايدي"):
+    if text in ("Id", "ايدي", "ايديي"):
         target = update.message.reply_to_message.from_user if update.message.reply_to_message else user
         await update.message.reply_text(f"\u2756 الايدي: {target.id}")
         return
@@ -145,7 +146,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text(f"\u2756 البايو: {bio}")
         return
 
-    if text == "البوت":
+    if text in ("البوت", "بوت"):
         bot_me = await context.bot.get_me()
         await update.message.reply_text(
             f"\u2756 اسم البوت: {bot_me.first_name}\n"
@@ -176,7 +177,8 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text(f"\u2756 رابط المجموعه: {link}")
         return
 
-    if text in ("المبرمج", "السورس"):
+    if text in ("المبرمج", "السورس", "سورس", "مطور", "مطور البوت",
+                 "المبرمج باندا", "المبرمج بودي", "المبرمج مصطفي"):
         await update.message.reply_text(MSG_DEVELOPER_INFO.format(developer=Config.SUDO_USERNAME))
         return
 
@@ -279,8 +281,8 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         )
         return
 
-    # ── نبذتي / سيفي — my bio ──
-    if text in ("نبذتي", "سيفي"):
+    # ── نبذتي / سيفي / سي في — my bio ──
+    if text in ("نبذتي", "سيفي", "سي في"):
         target = update.message.reply_to_message.from_user if update.message.reply_to_message else user
         try:
             chat_obj = await context.bot.get_chat(target.id)
@@ -351,11 +353,105 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
         )
         return
 
-    if text in ("القائمه", "الاوامر"):
+    # ── تست — test if bot alive ──
+    if text == "تست":
+        await update.message.reply_text("✯ البوت يعمل بنجاح ✅")
+        return
+
+    # ── خاص / برايفت / بص خاص — private link ──
+    if text in ("خاص", "برايفت", "بص خاص"):
+        bot_me = await context.bot.get_me()
+        await update.message.reply_text(f"✯ ارسلي خاص هنا: t.me/{bot_me.username}")
+        return
+
+    # ── تعديلاتي — edit count ──
+    if text == "تعديلاتي":
+        count = user_svc.get_stat(user.id, chat.id, "edits")
+        await update.message.reply_text(f"✯ عدد تعديلاتك: {count}")
+        return
+
+    # ── مسح تعديلاتي ──
+    if text == "مسح تعديلاتي":
+        user_svc.reset_stat(user.id, chat.id, "edits")
+        await update.message.reply_text("✯ تم مسح تعديلاتك ✅")
+        return
+
+    # ── جهاتي — contact count ──
+    if text == "جهاتي":
+        count = user_svc.get_stat(user.id, chat.id, "contacts")
+        await update.message.reply_text(f"✯ عدد جهاتك: {count}")
+        return
+
+    # ── مسح جهاتي ──
+    if text == "مسح جهاتي":
+        user_svc.reset_stat(user.id, chat.id, "contacts")
+        await update.message.reply_text("✯ تم مسح جهاتك ✅")
+        return
+
+    # ── سحكاتي — sticker count ──
+    if text == "سحكاتي":
+        count = user_svc.get_stat(user.id, chat.id, "stickers")
+        await update.message.reply_text(f"✯ عدد ملصقاتك: {count}")
+        return
+
+    # ── مسح سحكاتي ──
+    if text == "مسح سحكاتي":
+        user_svc.reset_stat(user.id, chat.id, "stickers")
+        await update.message.reply_text("✯ تم مسح عدد ملصقاتك ✅")
+        return
+
+    # ── مسح رسائلي ──
+    if text == "مسح رسائلي":
+        user_svc.reset_messages(user.id, chat.id)
+        await update.message.reply_text("✯ تم مسح رسائلك ✅")
+        return
+
+    # ── عدد الميديا ──
+    if text == "عدد الميديا":
+        count = group_svc.get_stat(chat.id, "media_count")
+        await update.message.reply_text(f"✯ عدد الميديا: {count}")
+        return
+
+    # ── مسح الميديا ──
+    if text == "مسح الميديا":
+        if not user_svc.is_group_admin(user.id, chat.id) and user.id != Config.SUDO_ID:
+            return
+        group_svc.reset_stat(chat.id, "media_count")
+        await update.message.reply_text("✯ تم مسح عداد الميديا ✅")
+        return
+
+    # ── مجوهراتي — gems ──
+    if text == "مجوهراتي":
+        count = user_svc.get_stat(user.id, chat.id, "gems")
+        await update.message.reply_text(f"✯ مجوهراتك: {count} 💎")
+        return
+
+    # ── اوامر اضف / اوامر الاذاعه / اوامر التفعيل — help pages ──
+    if text == "اوامر اضف📝":
+        await update.message.reply_text(HELP_ADD_COMMANDS)
+        return
+    if text == "اوامر الاذاعه📢":
+        await update.message.reply_text(HELP_BROADCAST)
+        return
+    if text == "اوامر التفعيل♻️":
+        await update.message.reply_text(HELP_TOGGLE)
+        return
+
+    # ── الغاء — cancel current operation ──
+    if text == "الغاء":
+        await update.message.reply_text("✯ تم الالغاء ✅")
+        return
+
+    if text in ("القائمه", "الاوامر", "الاوامر🧾", "القائمه الرئيسيه"):
         await update.message.reply_text(
             "\u2756 القائمه الرئيسيه \u2756",
             reply_markup=build_main_menu_keyboard(),
         )
+        return
+
+    # ── Chat auto-responses (from bian.lua) ──
+    if text in CHAT_RESPONSES:
+        await update.message.reply_text(CHAT_RESPONSES[text])
         return
 
 

@@ -53,7 +53,7 @@ async def _relay_to_developer(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         from src.services.redis_service import RedisService
         redis = RedisService()
         key = f"{_KEY_PREFIX}:{forwarded.message_id}"
-        await redis.client.set(key, str(user.id), ex=7 * 86400)
+        redis.set(key, str(user.id), ex=7 * 86400)
 
     await msg.reply_text("✅ تم إرسال رسالتك للمطور، سيتم الرد عليك قريباً.")
 
@@ -81,7 +81,7 @@ async def _relay_to_user(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None
     from src.services.redis_service import RedisService
     redis = RedisService()
     key = f"{_KEY_PREFIX}:{replied_id}"
-    user_id_str = await redis.client.get(key)
+    user_id_str = redis.get(key)
 
     if not user_id_str:
         return

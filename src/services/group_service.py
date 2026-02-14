@@ -195,3 +195,48 @@ class GroupService:
     def get_total_messages(self) -> int:
         val = self.redis.get("bot:total_messages")
         return int(val) if val else 0
+
+    # ── Group Stats ──
+
+    def get_stat(self, chat_id: int, stat_name: str) -> int:
+        """Get a group stat."""
+        val = self.redis.hget(self._group_key(chat_id), stat_name)
+        return int(val) if val else 0
+
+    def increment_stat(self, chat_id: int, stat_name: str) -> int:
+        """Increment a group stat. Returns new count."""
+        key = self._group_key(chat_id)
+        current = self.redis.hget(key, stat_name)
+        count = int(current) + 1 if current else 1
+        self.redis.hset(key, stat_name, str(count))
+        return count
+
+    def reset_stat(self, chat_id: int, stat_name: str) -> None:
+        """Reset a group stat to 0."""
+        self.redis.hset(self._group_key(chat_id), stat_name, "0")
+
+    # ── Delete operations for custom commands/replies ──
+
+    def delete_global_command(self, trigger: str) -> None:
+        """Delete a global custom command."""
+        self.redis.hdel(self._global_cmd_key(), trigger)
+
+    def delete_global_reply(self, trigger: str) -> None:
+        """Delete a global custom reply."""
+        self.redis.hdel(self._global_reply_key(), trigger)
+
+    def delete_all_custom_commands(self, chat_id: int) -> None:
+        """Delete all custom commands for a group."""
+        self.redis.delete(self._custom_cmd_key(chat_id))
+
+    def delete_all_global_commands(self) -> None:
+        """Delete all global custom commands."""
+        self.redis.delete(self._global_cmd_key())
+
+    def delete_all_custom_replies(self, chat_id: int) -> None:
+        """Delete all custom replies for a group."""
+        self.redis.delete(self._custom_reply_key(chat_id))
+
+    def delete_all_global_replies(self) -> None:
+        """Delete all global custom replies."""
+        self.redis.delete(self._global_reply_key())

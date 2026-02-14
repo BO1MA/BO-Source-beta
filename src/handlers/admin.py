@@ -47,9 +47,13 @@ ROLE_COMMANDS = {
 
 ROLE_LIST_COMMANDS = {
     "المطورين": ROLE_DEVELOPER,
+    "المطور": ROLE_DEVELOPER,
     "المطورين الثانويين": ROLE_SECONDARY_DEVELOPER,
+    "المطورين الثانوين": ROLE_SECONDARY_DEVELOPER,
+    "المساعد": ROLE_ASSISTANT,
     "المالكين": ROLE_OWNER,
     "المالك": ROLE_OWNER,
+    "المنشئين الاساسيين": ROLE_MAIN_CREATOR,
     "المنشئين": ROLE_CREATOR,
     "المنشئ": ROLE_CREATOR,
     "المدراء": ROLE_MANAGER,
@@ -243,6 +247,53 @@ async def handle_custom_commands(update: Update, context: ContextTypes.DEFAULT_T
             await update.message.reply_text(f"\u2756 تم حذف الامر: {trigger} \u2705")
         return
 
+    if text.startswith("حذف امر عام") or text.startswith("مسح امر عام"):
+        if from_user.id != Config.SUDO_ID:
+            await update.message.reply_text(MSG_NO_PERMISSION)
+            return
+        trigger = text.replace("حذف امر عام", "").replace("مسح امر عام", "").strip()
+        if trigger:
+            group_svc.delete_global_command(trigger)
+            await update.message.reply_text(f"\u2756 تم حذف الامر العام: {trigger} \u2705")
+        return
+
+    if text.startswith("حذف امر") or text.startswith("مسح امر"):
+        trigger = text.replace("حذف امر", "").replace("مسح امر", "").strip()
+        if trigger:
+            group_svc.delete_custom_command(chat_id, trigger)
+            await update.message.reply_text(f"\u2756 تم حذف الامر: {trigger} \u2705")
+        return
+
+    if text.startswith("حذف رد عام") or text.startswith("مسح رد عام"):
+        if from_user.id != Config.SUDO_ID:
+            await update.message.reply_text(MSG_NO_PERMISSION)
+            return
+        trigger = text.replace("حذف رد عام", "").replace("مسح رد عام", "").strip()
+        if trigger:
+            group_svc.delete_global_reply(trigger)
+            await update.message.reply_text(f"\u2756 تم حذف الرد العام: {trigger} \u2705")
+        return
+
+    if text.startswith("حذف رد") or text.startswith("مسح رد"):
+        trigger = text.replace("حذف رد", "").replace("مسح رد", "").strip()
+        if trigger:
+            group_svc.delete_custom_reply(chat_id, trigger)
+            await update.message.reply_text(f"\u2756 تم حذف الرد: {trigger} \u2705")
+        return
+
+    if text in ("حذف الاوامر المضافه", "مسح الاوامر المضافه"):
+        group_svc.delete_all_custom_commands(chat_id)
+        await update.message.reply_text("\u2756 تم حذف جميع الاوامر المضافه \u2705")
+        return
+
+    if text in ("حذف الاوامر المضافه العامه", "مسح الاوامر المضافه العامه"):
+        if from_user.id != Config.SUDO_ID:
+            await update.message.reply_text(MSG_NO_PERMISSION)
+            return
+        group_svc.delete_all_global_commands()
+        await update.message.reply_text("\u2756 تم حذف جميع الاوامر العامه \u2705")
+        return
+
     if text == "الاوامر المضافه":
         cmds = group_svc.get_all_custom_commands(chat_id)
         if cmds:
@@ -397,6 +448,186 @@ async def handle_detect_bots(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 @group_only
+async def handle_delete_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """حذف الوصف — delete group description."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    if not await is_bot_admin(context.bot, chat_id):
+        await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
+        return
+
+    try:
+        await context.bot.set_chat_description(chat_id, "")
+        await update.message.reply_text("✯ تم حذف وصف الجروب ✅")
+    except Exception as e:
+        await update.message.reply_text(f"✯ فشل حذف الوصف: {e}")
+
+
+@group_only
+async def handle_set_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """ضع رابط — generate/set group invite link."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    if not await is_bot_admin(context.bot, chat_id):
+        await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
+        return
+
+    try:
+        link = await context.bot.export_chat_invite_link(chat_id)
+        await update.message.reply_text(f"✯ رابط الجروب:\n{link}")
+    except Exception as e:
+        await update.message.reply_text(f"✯ فشل انشاء الرابط: {e}")
+
+
+@group_only
+async def handle_delete_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """حذف الرابط — revoke group invite link."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    if not await is_bot_admin(context.bot, chat_id):
+        await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
+        return
+
+    try:
+        await context.bot.revoke_chat_invite_link(chat_id, (await context.bot.get_chat(chat_id)).invite_link or "")
+        await update.message.reply_text("✯ تم حذف رابط الجروب ✅")
+    except Exception:
+        try:
+            await context.bot.export_chat_invite_link(chat_id)
+            await update.message.reply_text("✯ تم تجديد رابط الجروب ✅")
+        except Exception as e:
+            await update.message.reply_text(f"✯ فشل حذف الرابط: {e}")
+
+
+@group_only
+async def handle_promote_all_admins(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """رفع الادمنيه — promote all bot-registered admins to TG admin."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    if not await is_bot_admin(context.bot, chat_id):
+        await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
+        return
+
+    pattern = f"bot:group:{chat_id}:user:*"
+    count = 0
+    for key in redis_svc.keys(pattern):
+        data = redis_svc.hgetall(key)
+        role = int(data.get("role", ROLE_MEMBER))
+        if role >= ROLE_ADMIN:
+            uid = int(key.split(":")[-1])
+            try:
+                await promote_member(context.bot, chat_id, uid)
+                count += 1
+            except Exception:
+                pass
+
+    await update.message.reply_text(f"✯ تم رفع {count} عضو كمشرف ✅")
+
+
+@group_only
+async def handle_lift_restrictions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """رفع القيود — lift all restrictions from a user (unrestrict)."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_group_admin(from_user.id, chat_id) and from_user.id != Config.SUDO_ID:
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    if not await is_bot_admin(context.bot, chat_id):
+        await update.message.reply_text("✯ يجب ان اكون مشرف لتنفيذ هذا الامر")
+        return
+
+    target_id = extract_user_id(update)
+    if not target_id:
+        await update.message.reply_text(MSG_USER_NOT_FOUND)
+        return
+
+    try:
+        from telegram import ChatPermissions
+        await context.bot.restrict_chat_member(
+            chat_id, target_id,
+            permissions=ChatPermissions(
+                can_send_messages=True,
+                can_send_media_messages=True,
+                can_send_polls=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True,
+                can_change_info=True,
+                can_invite_users=True,
+                can_pin_messages=True,
+            ),
+        )
+        await update.message.reply_text("✯ تم رفع القيود عن المستخدم ✅")
+    except Exception as e:
+        await update.message.reply_text(f"✯ فشل رفع القيود: {e}")
+
+
+@group_only
+async def handle_clean_groups(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """تنظيف المجموعات — clean inactive groups from bot DB."""
+    from_user = update.effective_user
+
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    group_ids = group_svc.get_all_group_ids()
+    removed = 0
+    for gid in group_ids:
+        try:
+            await context.bot.get_chat(gid)
+        except Exception:
+            group_svc.remove_group(gid)
+            removed += 1
+
+    await update.message.reply_text(f"✯ تم تنظيف {removed} مجموعه غير نشطه ✅")
+
+
+@group_only
+async def handle_clean_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """تنظيف المشتركين — clean inactive members from group DB."""
+    chat_id = update.effective_chat.id
+    from_user = update.effective_user
+
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+
+    pattern = f"bot:group:{chat_id}:user:*"
+    removed = 0
+    for key in redis_svc.keys(pattern):
+        uid = int(key.split(":")[-1])
+        try:
+            await context.bot.get_chat_member(chat_id, uid)
+        except Exception:
+            redis_svc.delete(key)
+            removed += 1
+
+    await update.message.reply_text(f"✯ تم تنظيف {removed} عضو غير نشط ✅")
+
+
+@group_only
 async def handle_demote_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """تنزيل الكل — demote all users in this group to member."""
     chat_id = update.effective_chat.id
@@ -518,19 +749,38 @@ def register(app: Application) -> None:
         handle_admin_list,
     ), group=10)
 
-    # Custom commands
+    # Custom commands (delete operations must be before add to match first)
     app.add_handler(MessageHandler(
-        filters.Regex("^(اضف امر|اضف رد|الغاء الامر|الاوامر المضافه)") & G,
+        filters.Regex("^(حذف الاوامر المضافه العامه|مسح الاوامر المضافه العامه)$") & G,
+        handle_custom_commands,
+    ), group=10)
+    app.add_handler(MessageHandler(
+        filters.Regex("^(حذف الاوامر المضافه|مسح الاوامر المضافه)$") & G,
+        handle_custom_commands,
+    ), group=10)
+    app.add_handler(MessageHandler(
+        filters.Regex("^(حذف امر عام|مسح امر عام|حذف رد عام|مسح رد عام)") & G,
+        handle_custom_commands,
+    ), group=10)
+    app.add_handler(MessageHandler(
+        filters.Regex("^(اضف امر|اضف رد|الغاء الامر|الاوامر المضافه|حذف امر|مسح امر|حذف رد|مسح رد)") & G,
         handle_custom_commands,
     ), group=10)
 
     # Group management
     app.add_handler(MessageHandler(filters.Regex("^تفعيل$") & G, handle_activate), group=10)
-    app.add_handler(MessageHandler(filters.Regex("^بوت غادر$") & G, handle_bot_leave), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^(بوت غادر|غادر)$") & G, handle_bot_leave), group=10)
     app.add_handler(MessageHandler(filters.Regex("^ضع اسم") & G, handle_set_title), group=10)
     app.add_handler(MessageHandler(filters.Regex("^ضع وصف") & G, handle_set_description), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^(حذف الوصف|مسح الوصف)$") & G, handle_delete_description), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^ضع رابط$") & G, handle_set_link), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^(حذف الرابط|مسح الرابط)$") & G, handle_delete_link), group=10)
     app.add_handler(MessageHandler(filters.Regex("^(تغيير صورة الجروب|صورة الجروب)$") & G, handle_set_photo), group=10)
-    app.add_handler(MessageHandler(filters.Regex("^كشف البوتات$") & G, handle_detect_bots), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^(كشف البوتات|كشف البوت|كشف)$") & G, handle_detect_bots), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^رفع الادمنيه$") & G, handle_promote_all_admins), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^رفع القيود( |$)") & G, handle_lift_restrictions), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^تنظيف المجموعات$") & G, handle_clean_groups), group=10)
+    app.add_handler(MessageHandler(filters.Regex("^تنظيف المشتركين$") & G, handle_clean_members), group=10)
 
     # Developer/sudo commands (work in groups and private)
     app.add_handler(MessageHandler(

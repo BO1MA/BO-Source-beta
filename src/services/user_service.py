@@ -244,3 +244,26 @@ class UserService:
 
     def get_total_users(self) -> int:
         return self.redis.scard("bot:users")
+
+    # ── User Stats ──
+
+    def get_stat(self, user_id: int, chat_id: int, stat_name: str) -> int:
+        """Get a user stat (edits, contacts, stickers, media, gems, etc.)."""
+        val = self.redis.hget(self._group_user_key(chat_id, user_id), stat_name)
+        return int(val) if val else 0
+
+    def increment_stat(self, user_id: int, chat_id: int, stat_name: str) -> int:
+        """Increment a user stat. Returns new count."""
+        key = self._group_user_key(chat_id, user_id)
+        current = self.redis.hget(key, stat_name)
+        count = int(current) + 1 if current else 1
+        self.redis.hset(key, stat_name, str(count))
+        return count
+
+    def reset_stat(self, user_id: int, chat_id: int, stat_name: str) -> None:
+        """Reset a user stat to 0."""
+        self.redis.hset(self._group_user_key(chat_id, user_id), stat_name, "0")
+
+    def reset_messages(self, user_id: int, chat_id: int) -> None:
+        """Reset message count for user in group."""
+        self.redis.hset(self._group_user_key(chat_id, user_id), "message_count", "0")

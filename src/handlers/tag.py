@@ -83,6 +83,6 @@ async def handle_tag_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 def register(app: Application) -> None:
     """Register tag handlers."""
     app.add_handler(MessageHandler(
-        filters.Regex("^(all|@all|الكل)$") & filters.ChatType.GROUPS,
+        filters.Regex("^(all|@all|الكل|تاك للكل)$") & filters.ChatType.GROUPS,
         handle_tag_all,
     ), group=12)
