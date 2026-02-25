@@ -7,9 +7,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+
 @dataclass
 class GroupSettings:
     """All toggle-able settings for a group (mirrors GetSetieng in Lua)."""
+    group_type: str = "free"  # 'vip' or 'free'
     welcome_enabled: bool = True
     farewell_enabled: bool = False
     games_enabled: bool = True
@@ -36,6 +38,7 @@ class GroupSettings:
 
     def to_dict(self) -> dict:
         return {
+            "group_type": self.group_type,
             "welcome_enabled": self.welcome_enabled,
             "farewell_enabled": self.farewell_enabled,
             "games_enabled": self.games_enabled,
@@ -57,6 +60,7 @@ class GroupSettings:
     @classmethod
     def from_dict(cls, data: dict) -> "GroupSettings":
         return cls(
+            group_type=data.get("group_type", "free"),
             welcome_enabled=_bool(data.get("welcome_enabled", True)),
             farewell_enabled=_bool(data.get("farewell_enabled", False)),
             games_enabled=_bool(data.get("games_enabled", True)),

@@ -18,6 +18,7 @@ class Config:
     # ── Developer ──
     SUDO_ID: int = int(os.getenv("SUDO_ID", "") or "0")
     SUDO_USERNAME: str = os.getenv("SUDO_USERNAME", "")
+    DEVELOPER_USERNAME: str = os.getenv("SUDO_USERNAME", "")  # Alias for SUDO_USERNAME
 
     # ── Redis (supports Vercel KV env vars automatically) ──
     REDIS_URL: str = os.getenv("REDIS_URL", "") or os.getenv("KV_URL", "")

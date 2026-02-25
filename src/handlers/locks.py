@@ -431,24 +431,29 @@ async def enforce_global_and_subscribe(update: Update, context: ContextTypes.DEF
 
     # ── Force subscribe enforcement ──
     settings = group_svc.get_settings(chat_id)
-    if settings.force_subscribe_enabled and settings.force_subscribe_channel:
-        try:
-            channel_ref = settings.force_subscribe_channel
-            # Try numeric channel ID first, then username
-            if channel_ref.lstrip('-').isdigit():
-                channel_id = int(channel_ref)
-            else:
-                channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+    if settings.force_subscribe_enabled:
+        # Use per-group channel or fall back to global default from Config
+        channel_ref = settings.force_subscribe_channel or Config.CHANNEL_USERNAME or ""
+        if not channel_ref and Config.CHANNEL_ID:
+            channel_ref = str(Config.CHANNEL_ID)
+        
+        if channel_ref:
+            try:
+                # Try numeric channel ID first, then username
+                if channel_ref.lstrip('-').isdigit():
+                    channel_id = int(channel_ref)
+                else:
+                    channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
 
-            if not await check_channel_membership(context.bot, channel_id, user_id):
-                channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
-                await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
-                await delete_message_safe(context.bot, chat_id, update.message.message_id)
-                raise ApplicationHandlerStop()
-        except ApplicationHandlerStop:
-            raise
-        except Exception:
-            pass
+                if not await check_channel_membership(context.bot, channel_id, user_id):
+                    channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+                    await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
+                    await delete_message_safe(context.bot, chat_id, update.message.message_id)
+                    raise ApplicationHandlerStop()
+            except ApplicationHandlerStop:
+                raise
+            except Exception:
+                pass
 
 
 @group_only

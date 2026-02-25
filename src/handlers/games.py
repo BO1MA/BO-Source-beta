@@ -45,6 +45,15 @@ EMOJI_POOL = [
 
 ARABIC_LETTERS = list("ابتثجحخدذرزسشصضطظعغفقكلمنهوي")
 
+# Speed words (Lua: الاسرع / ترتيب)
+SPEED_WORDS = [
+    "سحور", "سياره", "استقبال", "قنفه", "ايفون", "بزونه", "مطبخ", "كرستيانو",
+    "دجاجه", "مدرسه", "الوان", "غرفه", "ثلاجه", "كهوه", "سفينه", "العراق",
+    "محطه", "طياره", "رادار", "منزل", "مستشفى", "كهرباء", "تفاحه", "اخطبوط",
+    "سلمون", "فرنسا", "برتقاله", "تفاح", "مطرقه", "بتيته", "لهانه", "شباك",
+    "باص", "سمكه", "ذباب", "تلفاز", "حاسوب", "انترنيت", "ساحه", "جسر",
+]
+
 # Arabic words for word scramble game
 SCRAMBLE_WORDS = [
     "مدرسه", "كتاب", "قلم", "حياه", "سماء", "بحر", "جبل",
@@ -52,6 +61,34 @@ SCRAMBLE_WORDS = [
     "سياره", "طائره", "هاتف", "حاسوب", "صديق", "عائله",
     "مسجد", "حديقه", "مطبخ", "غرفه", "شارع", "مدينه",
 ]
+
+OPPOSITE_PAIRS = {
+    "باي": "هلو",
+    "فهمت": "مافهمت",
+    "موزين": "زين",
+    "اسمعك": "ماسمعك",
+    "احبك": "ماحبك",
+    "موحلو": "حلو",
+    "نضيف": "وصخ",
+    "حاره": "بارده",
+    "ناصي": "عالي",
+    "جوه": "فوك",
+    "سريع": "بطيء",
+    "ونسه": "ضوجه",
+    "طويل": "قزم",
+    "سمين": "ضعيف",
+    "ضعيف": "قوي",
+    "شريف": "كواد",
+    "شجاع": "جبان",
+    "رحت": "اجيت",
+    "عدل": "ميت",
+    "نشيط": "خامل",
+    "شبعان": "جوعان",
+    "موعطشان": "عطشان",
+    "خوش ولد": "موخوش ولد",
+    "اني": "موب اني",
+    "هادئ": "عصبي",
+}
 
 
 # ── Helpers ──
@@ -66,20 +103,25 @@ async def _check_games_enabled(update, context) -> bool:
         await update.message.reply_text(MSG_GAMES_LOCKED)
         return False
 
-    if settings.force_subscribe_enabled and settings.force_subscribe_channel:
-        try:
-            channel_ref = settings.force_subscribe_channel
-            # Try numeric channel ID first, then username
-            if channel_ref.lstrip('-').isdigit():
-                channel_id = int(channel_ref)
-            else:
-                channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
-            if not await check_channel_membership(context.bot, channel_id, user_id):
-                channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
-                await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
-                return False
-        except Exception:
-            pass
+    if settings.force_subscribe_enabled:
+        # Use per-group channel or fall back to global default from Config
+        channel_ref = settings.force_subscribe_channel or Config.CHANNEL_USERNAME or ""
+        if not channel_ref and Config.CHANNEL_ID:
+            channel_ref = str(Config.CHANNEL_ID)
+        
+        if channel_ref:
+            try:
+                # Try numeric channel ID first, then username
+                if channel_ref.lstrip('-').isdigit():
+                    channel_id = int(channel_ref)
+                else:
+                    channel_id = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+                if not await check_channel_membership(context.bot, channel_id, user_id):
+                    channel_display = channel_ref if channel_ref.startswith("@") else f"@{channel_ref}"
+                    await update.message.reply_text(MSG_FORCE_SUBSCRIBE.format(channel=channel_display))
+                    return False
+            except Exception:
+                pass
     return True
 
 
@@ -95,6 +137,20 @@ async def _award_point(chat_id: int, user_id: int) -> None:
     redis_svc.incr(_score_key(chat_id, user_id))
 
 
+def _normalize_answer(text: str) -> str:
+    return (
+        (text or "")
+        .strip()
+        .lower()
+        .replace("أ", "ا")
+        .replace("إ", "ا")
+        .replace("آ", "ا")
+        .replace("ى", "ي")
+        .replace("ة", "ه")
+        .replace("ـ", "")
+    )
+
+
 # ══════════════════════════════════════════════════
 # 1) السمايلات — Emoji Race
 # ══════════════════════════════════════════════════
@@ -105,7 +161,7 @@ async def handle_emoji_game(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return
     emoji = random.choice(EMOJI_POOL)
     redis_svc.set(_game_key("emoji", update.effective_chat.id), emoji, ex=120)
-    await update.message.reply_text(MSG_GAME_EMOJI_PROMPT.format(emoji=emoji))
+    await update.message.reply_text(f"✯اسرع واحد يدز هاذا السمايل ? » {{{emoji}}}")
 
 
 @group_only
@@ -118,7 +174,7 @@ async def handle_emoji_answer(update: Update, context: ContextTypes.DEFAULT_TYPE
     redis_svc.delete(_game_key("emoji", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(MSG_GAME_EMOJI_WIN.format(name=winner.first_name))
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ سمايل , سمايلات }")
 
 
 # ══════════════════════════════════════════════════
@@ -153,11 +209,41 @@ async def handle_guess_answer(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # ══════════════════════════════════════════════════
-# 3) الاسرع — Leaderboard
+# 3) الاسرع — Speed Word Game (Lua parity)
 # ══════════════════════════════════════════════════
 
 @group_only
-async def handle_fastest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_speed_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await _check_games_enabled(update, context):
+        return
+    chat_id = update.effective_chat.id
+    word = random.choice(SPEED_WORDS)
+    letters = list(word)
+    random.shuffle(letters)
+    scrambled = " ".join(letters)
+    redis_svc.set(_game_key("speed", chat_id), word, ex=120)
+    await update.message.reply_text(f"✯اسرع واحد يرتبها » {{{scrambled}}}")
+
+
+@group_only
+async def handle_speed_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    text = (update.message.text or "").strip()
+    active = redis_svc.get(_game_key("speed", chat_id))
+    if not active or text != active:
+        return
+    redis_svc.delete(_game_key("speed", chat_id))
+    winner = update.effective_user
+    await _award_point(chat_id, winner.id)
+    await update.message.reply_text("✯الف مبروك لقد فزت\n✯للعب مره اخره ارسل »{ الاسرع , ترتيب }")
+
+
+# ══════════════════════════════════════════════════
+# Leaderboard (kept as extra utility)
+# ══════════════════════════════════════════════════
+
+@group_only
+async def handle_fastest_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
     keys = redis_svc.keys(f"game:fastest:{chat_id}:*")
     scores = []
@@ -196,7 +282,7 @@ async def handle_letters_game(update: Update, context: ContextTypes.DEFAULT_TYPE
     rows = [" ".join(grid[i:i+5]) for i in range(0, 25, 5)]
     redis_svc.set(_game_key("letter", chat_id), diff_letter, ex=120)
     await update.message.reply_text(
-        f"✯ لعبة الحروف 🔤\n✯ جد الحرف المختلف:\n\n" + "\n".join(rows)
+        f"✯اسرع واحد يلكه الحرف المختلف ↓\n\n" + "\n".join(rows)
     )
 
 
@@ -212,7 +298,7 @@ async def handle_letter_answer(update: Update, context: ContextTypes.DEFAULT_TYP
     redis_svc.delete(_game_key("letter", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! الحرف الصحيح 🎉")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ حروف , الحروف }")
 
 
 # ══════════════════════════════════════════════════
@@ -226,7 +312,7 @@ async def handle_riddle_game(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat_id = update.effective_chat.id
     riddle = get_random_riddle()
     redis_svc.set(_game_key("riddle", chat_id), riddle["answer"], ex=180)
-    await update.message.reply_text(f"✯ حزوره ❓\n✯ {riddle['question']}")
+    await update.message.reply_text(f"✯اسرع واحد يحل الحزوره ↓\n {{{riddle['question']}}}")
 
 
 @group_only
@@ -236,11 +322,13 @@ async def handle_riddle_answer(update: Update, context: ContextTypes.DEFAULT_TYP
     active = redis_svc.get(_game_key("riddle", chat_id))
     if not active:
         return
-    if text == active or text in active.split(" - "):
+    norm_text = _normalize_answer(text)
+    choices = [c.strip() for c in active.replace("/", " - ").split(" - ") if c.strip()]
+    if any(_normalize_answer(choice) == norm_text for choice in choices):
         redis_svc.delete(_game_key("riddle", chat_id))
         winner = update.effective_user
         await _award_point(chat_id, winner.id)
-        await update.message.reply_text(f"✯ مبروك {winner.first_name}! الجواب الصحيح: {active} 🎉")
+        await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ حزوره }")
 
 
 # ══════════════════════════════════════════════════
@@ -254,7 +342,7 @@ async def handle_meaning_game(update: Update, context: ContextTypes.DEFAULT_TYPE
     chat_id = update.effective_chat.id
     em = get_random_emoji_meaning()
     redis_svc.set(_game_key("meaning", chat_id), em["answer"], ex=120)
-    await update.message.reply_text(f"✯ ما معنى هاذا الايموجي؟ 🤔\n\n{em['emoji']}")
+    await update.message.reply_text(f"✯اسرع واحد يدز معنى السمايل » {{{em['emoji']}}}")
 
 
 @group_only
@@ -262,12 +350,14 @@ async def handle_meaning_answer(update: Update, context: ContextTypes.DEFAULT_TY
     chat_id = update.effective_chat.id
     text = (update.message.text or "").strip()
     active = redis_svc.get(_game_key("meaning", chat_id))
-    if not active or text != active:
+    if not active:
+        return
+    if _normalize_answer(text) != _normalize_answer(active):
         return
     redis_svc.delete(_game_key("meaning", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! الجواب: {active} 🎉")
+    await update.message.reply_text("✯ الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ معاني }")
 
 
 # ══════════════════════════════════════════════════
@@ -283,8 +373,7 @@ async def handle_ring_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     redis_svc.set(_game_key("ring", chat_id), hand, ex=60)
     await update.message.reply_text(
         "✯ لعبة المحيبس 💍\n"
-        "✯ وين المحبس؟\n"
-        "✯ ارسل: يمين او يسار"
+        "✯ وين المحبس؟ (يمين / يسار)"
     )
 
 
@@ -301,7 +390,7 @@ async def handle_ring_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if text == active:
         winner = update.effective_user
         await _award_point(chat_id, winner.id)
-        await update.message.reply_text(f"✯ مبروك {winner.first_name}! المحبس بال{active} 💍🎉")
+        await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ محيبس }")
     else:
         await update.message.reply_text(f"✯ خطأ! المحبس كان بال{active} 💍❌")
 
@@ -330,7 +419,7 @@ async def handle_different_game(update: Update, context: ContextTypes.DEFAULT_TY
     col = diff_pos % 4 + 1
     redis_svc.set(_game_key("diff", chat_id), diff_emoji, ex=120)
     await update.message.reply_text(
-        f"✯ جد المختلف 🔍\n\n" + "\n".join(rows)
+        f"✯اسرع واحد يلكه المختلف ↓\n\n" + "\n".join(rows)
     )
 
 
@@ -344,7 +433,7 @@ async def handle_different_answer(update: Update, context: ContextTypes.DEFAULT_
     redis_svc.delete(_game_key("diff", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! عيونك حاده 👁🎉")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ المختلف }")
 
 
 # ══════════════════════════════════════════════════
@@ -358,7 +447,7 @@ async def handle_math_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     chat_id = update.effective_chat.id
     question, answer = generate_math_question()
     redis_svc.set(_game_key("math", chat_id), str(answer), ex=120)
-    await update.message.reply_text(f"✯ رياضيات 🔢\n✯ {question}")
+    await update.message.reply_text(f"✯اسرع واحد يحل المساله ↓\n {{{question}}}")
 
 
 @group_only
@@ -374,7 +463,7 @@ async def handle_math_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         redis_svc.delete(_game_key("math", chat_id))
         winner = update.effective_user
         await _award_point(chat_id, winner.id)
-        await update.message.reply_text(f"✯ مبروك {winner.first_name}! الجواب الصحيح: {active} 🎉")
+        await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ رياضيات }")
 
 
 # ══════════════════════════════════════════════════
@@ -388,7 +477,7 @@ async def handle_english_game(update: Update, context: ContextTypes.DEFAULT_TYPE
     chat_id = update.effective_chat.id
     word = get_random_english_word()
     redis_svc.set(_game_key("english", chat_id), word["answer"], ex=120)
-    await update.message.reply_text(f"✯ ترجم الكلمه الى الانجليزيه 🇬🇧\n✯ {word['word']}")
+    await update.message.reply_text(f"✯اسرع واحد يترجمها انكليزي ↓\n {{{word['word']}}}")
 
 
 @group_only
@@ -401,7 +490,7 @@ async def handle_english_answer(update: Update, context: ContextTypes.DEFAULT_TY
     redis_svc.delete(_game_key("english", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! الترجمه: {active} 🎉")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ انكليزي }")
 
 
 # ══════════════════════════════════════════════════
@@ -415,7 +504,7 @@ async def handle_proverb_game(update: Update, context: ContextTypes.DEFAULT_TYPE
     chat_id = update.effective_chat.id
     proverb = get_random_proverb()
     redis_svc.set(_game_key("proverb", chat_id), proverb["answer"], ex=120)
-    await update.message.reply_text(f"✯ اكمل المثل 📜\n✯ {proverb['proverb']}")
+    await update.message.reply_text(f"✯اسرع واحد يكمل المثل ↓\n {{{proverb['proverb']}}}")
 
 
 @group_only
@@ -423,12 +512,12 @@ async def handle_proverb_answer(update: Update, context: ContextTypes.DEFAULT_TY
     chat_id = update.effective_chat.id
     text = (update.message.text or "").strip()
     active = redis_svc.get(_game_key("proverb", chat_id))
-    if not active or text != active:
+    if not active or _normalize_answer(text) != _normalize_answer(active):
         return
     redis_svc.delete(_game_key("proverb", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! الاكمال: {active} 🎉")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ امثله }")
 
 
 # ══════════════════════════════════════════════════
@@ -445,7 +534,7 @@ async def handle_scramble_game(update: Update, context: ContextTypes.DEFAULT_TYP
     random.shuffle(letters)
     scrambled = " ".join(letters)
     redis_svc.set(_game_key("scramble", chat_id), word, ex=120)
-    await update.message.reply_text(f"✯ رتب الحروف لتكوين كلمه 🔠\n✯ {scrambled}")
+    await update.message.reply_text(f"✯اسرع واحد يرتبها ↓\n {{{scrambled}}}")
 
 
 @group_only
@@ -453,12 +542,39 @@ async def handle_scramble_answer(update: Update, context: ContextTypes.DEFAULT_T
     chat_id = update.effective_chat.id
     text = (update.message.text or "").strip()
     active = redis_svc.get(_game_key("scramble", chat_id))
-    if not active or text != active:
+    if not active or _normalize_answer(text) != _normalize_answer(active):
         return
     redis_svc.delete(_game_key("scramble", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text(f"✯ مبروك {winner.first_name}! الكلمه: {active} 🎉")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ كلمات }")
+
+
+# ══════════════════════════════════════════════════
+# Extra) عكس — Opposite Word Game (Lua-inspired)
+# ══════════════════════════════════════════════════
+
+@group_only
+async def handle_opposite_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await _check_games_enabled(update, context):
+        return
+    chat_id = update.effective_chat.id
+    prompt, answer = random.choice(list(OPPOSITE_PAIRS.items()))
+    redis_svc.set(_game_key("opposite", chat_id), answer, ex=120)
+    await update.message.reply_text(f"✯ لعبة العكس\n✯ هات عكس: {prompt}")
+
+
+@group_only
+async def handle_opposite_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    text = (update.message.text or "").strip()
+    active = redis_svc.get(_game_key("opposite", chat_id))
+    if not active or text != active:
+        return
+    redis_svc.delete(_game_key("opposite", chat_id))
+    winner = update.effective_user
+    await _award_point(chat_id, winner.id)
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ عكس , العكس }")
 
 
 # ══════════════════════════════════════════════════
@@ -490,7 +606,7 @@ async def handle_game_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     game_help = {
         "game:emoji": "ارسل 'السمايلات' لبدء اللعبه",
         "game:guess": "ارسل 'تخمين' لبدء اللعبه",
-        "game:fastest": "ارسل 'الاسرع' لعرض الترتيب",
+        "game:fastest": "ارسل 'الاسرع' لبدء لعبة السرعه",
         "game:letters": "ارسل 'الحروف' لبدء اللعبه",
         "game:riddle": "ارسل 'حزوره' لبدء اللعبه",
         "game:meaning": "ارسل 'معاني' لبدء اللعبه",
@@ -517,7 +633,8 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^الالعاب$") & G, handle_games_menu), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(السمايلات|السمايل|سمايل|سمايلات)$") & G, handle_emoji_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(تخمين|خمن)$") & G, handle_guess_game), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^(الاسرع|ترتيب|ترتيب الاوامر)$") & G, handle_fastest), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(اسرع|الاسرع|ترتيب|ترتيب الاوامر)$") & G, handle_speed_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^ترتيب الاسرع$") & G, handle_fastest_leaderboard), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(الحروف|حروف|حرف)$") & G, handle_letters_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(حزوره|الحزوره)$") & G, handle_riddle_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(معاني|المعاني)$") & G, handle_meaning_game), group=15)
@@ -526,12 +643,14 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^رياضيات$") & G, handle_math_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^انكليزي$") & G, handle_english_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(امثله|الامثله)$") & G, handle_proverb_game), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^(كلمات|الكلمات)$") & G, handle_scramble_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(كلمات|الكلمات|كتبات)$") & G, handle_scramble_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(عكس|العكس)$") & G, handle_opposite_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(اشتم|اشتمو)$") & G, handle_insult), group=15)
 
     # Answer checkers — low priority so they don't conflict with commands
     app.add_handler(MessageHandler(filters.TEXT & G, handle_emoji_answer), group=90)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_guess_answer), group=91)
+    app.add_handler(MessageHandler(filters.TEXT & G, handle_speed_answer), group=91)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_letter_answer), group=92)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_riddle_answer), group=93)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_meaning_answer), group=94)
@@ -541,6 +660,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.TEXT & G, handle_english_answer), group=98)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_proverb_answer), group=100)
     app.add_handler(MessageHandler(filters.TEXT & G, handle_scramble_answer), group=101)
+    app.add_handler(MessageHandler(filters.TEXT & G, handle_opposite_answer), group=102)
 
     # Callback query
     app.add_handler(CallbackQueryHandler(handle_game_callback, pattern="^game:"))

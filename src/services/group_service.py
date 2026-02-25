@@ -1,3 +1,11 @@
+    # ── Group Type (VIP/Free) ──
+    def set_group_type(self, chat_id: int, group_type: str) -> None:
+        settings = self.get_settings(chat_id)
+        settings.group_type = group_type
+        self.save_settings(chat_id, settings)
+
+    def get_group_type(self, chat_id: int) -> str:
+        return self.get_settings(chat_id).group_type
 """
 Group service — CRUD for group settings, locks, custom commands stored in Redis.
 Mirrors the group management features from bian.lua.

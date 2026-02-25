@@ -477,8 +477,8 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(filters.Regex("^(حذف القوانين|مسح القوانين)$") & G, handle_delete_rules), group=7)
 
     # Force subscribe
-    app.add_handler(MessageHandler(filters.Regex("^الاشتراك الاجباري$") & G, handle_force_subscribe_info), group=7)
-    app.add_handler(MessageHandler(filters.Regex("^تغيير الاشتراك الاجباري") & G, handle_set_force_channel), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(الاشتراك الاجباري|الاشتراك الاجباري 𖥔)$") & G, handle_force_subscribe_info), group=7)
+    app.add_handler(MessageHandler(filters.Regex("^(تغيير الاشتراك الاجباري|تغيير الاشتراك الاجباري 𖥔)") & G, handle_set_force_channel), group=7)
 
     # Group permissions
     app.add_handler(MessageHandler(filters.Regex("^(صلاحيات الجروب|الصلاحيات)$") & G, handle_group_permissions), group=7)

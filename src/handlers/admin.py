@@ -1,3 +1,29 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+@group_only
+async def handle_developer_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """لوحة المطور — show developer control panel (sudo only)."""
+    from_user = update.effective_user
+    if not user_svc.is_sudo(from_user.id):
+        await update.message.reply_text(MSG_NO_PERMISSION)
+        return
+    total_groups = group_svc.get_total_groups()
+    total_users = user_svc.get_total_users()
+    total_msgs = group_svc.get_total_messages()
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("احصائيات البوت", callback_data="dev_stats")],
+        [InlineKeyboardButton("مجموعات VIP", callback_data="dev_vip_groups"), InlineKeyboardButton("مجموعات FREE", callback_data="dev_free_groups")],
+        [InlineKeyboardButton("رسالة جماعية", callback_data="dev_broadcast")],
+        [InlineKeyboardButton("مساعدين المطور", callback_data="dev_assistants")],
+        [InlineKeyboardButton("اعدادات البوت", callback_data="dev_settings")],
+    ])
+    msg = (
+        f"✯ لوحة تحكم المطور:\n"
+        f"- المجموعات: {total_groups}\n"
+        f"- المستخدمين: {total_users}\n"
+        f"- الرسائل: {total_msgs}\n"
+        f"- اوامر سريعة عبر الازرار:\n"
+    )
+    await update.message.reply_text(msg, reply_markup=keyboard)
 """
 Admin handler — role management (promote, demote), role listing, admin info,
 group management (activate, leave, set title/description/photo),
@@ -719,6 +745,8 @@ async def handle_group_list(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 def register(app: Application) -> None:
+        # Developer panel
+        app.add_handler(MessageHandler(filters.Regex("^(لوحة المطور|لوحة تحكم المطور|developer panel)$"), handle_developer_panel), group=10)
     """Register admin-related handlers."""
     G = filters.ChatType.GROUPS
 

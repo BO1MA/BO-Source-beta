@@ -65,7 +65,7 @@
     "description_ar": "اذاعه لجميع المجموعات"
   },
   "games": {
-    "triggers": ["الالعاب", "السمايلات", "تخمين"],
+    "triggers": ["الالعاب", "السمايلات", "تخمين", "حزوره", "معاني", "محيبس", "رياضيات", "امثله", "كلمات"],
     "description": "Play games",
     "description_ar": "العاب"
   },
@@ -73,5 +73,110 @@
     "triggers": ["بحث يوتيوب", "يوتيوب"],
     "description": "Search and download YouTube",
     "description_ar": "بحث وتحميل يوتيوب"
+  },
+  "custom_commands": {
+    "triggers": ["اضف امر", "اضف رد", "حذف امر", "حذف رد", "الاوامر المضافه"],
+    "description": "Manage custom commands",
+    "description_ar": "ادارة الاوامر المخصصه"
+  },
+  "user_info": {
+    "triggers": ["ايدي", "معرفي", "اسمي", "البايو", "سيفي", "رتبتي", "صلاحياتي", "رسائلي", "صورتي"],
+    "description": "User information commands",
+    "description_ar": "اوامر معلومات المستخدم"
+  },
+  "group_info": {
+    "triggers": ["الجروب", "الرابط", "الادمنيه"],
+    "description": "Group information commands",
+    "description_ar": "اوامر معلومات المجموعه"
+  },
+  "fun": {
+    "triggers": ["حكمه", "نكته", "قصيده", "خيرني", "زخرفه", "تويت", "اعلام"],
+    "description": "Fun commands",
+    "description_ar": "اوامر ترفيهيه"
+  },
+  "auto_response": {
+    "triggers": ["لو خيروك", "العكس", "غنيلي", "الاحصائيات"],
+    "description": "Auto-response and misc commands",
+    "description_ar": "ردود تلقائيه واوامر متنوعه"
+  },
+  "developer": {
+    "triggers": ["المطور", "المبرمج", "مين نصبلك", "البوت"],
+    "description": "Developer info commands",
+    "description_ar": "اوامر معلومات المطور"
+  },
+  "pin": {
+    "triggers": ["تثبيت", "الغاء التثبيت", "الغاء تثبيت الكل"],
+    "description": "Pin/unpin messages",
+    "description_ar": "تثبيت والغاء تثبيت الرسائل"
+  },
+  "welcome": {
+    "triggers": ["ضع ترحيب", "الترحيب", "حذف الترحيب"],
+    "description": "Welcome message settings",
+    "description_ar": "اعدادات رسالة الترحيب"
+  },
+  "rules": {
+    "triggers": ["ضع قوانين", "القوانين", "حذف القوانين"],
+    "description": "Group rules settings",
+    "description_ar": "اعدادات قوانين المجموعه"
+  },
+  "description": {
+    "triggers": ["ضع وصف", "حذف الوصف"],
+    "description": "Group description settings",
+    "description_ar": "اعدادات وصف المجموعه"
+  },
+  "user_lists": {
+    "triggers": ["المحظورين", "المكتومين", "المقيدين"],
+    "description": "List restricted users",
+    "description_ar": "عرض المستخدمين المقيدين"
+  },
+  "bot_leave": {
+    "triggers": ["بوت غادر", "غادر"],
+    "description": "Make bot leave group",
+    "description_ar": "مغادرة البوت للمجموعه"
+  },
+  "insult": {
+    "triggers": ["اشتم", "اشتمو"],
+    "description": "Insult someone playfully",
+    "description_ar": "شتم شخص بطريقه مرحه"
+  },
+  "advice": {
+    "triggers": ["انصح", "انصحني", "انصحنى"],
+    "description": "Give advice",
+    "description_ar": "اعطاء نصيحه"
+  },
+  "detect": {
+    "triggers": ["كشف", "كشف البوتات", "كشف البوت", "كشف القيود"],
+    "description": "Detect bots and restrictions",
+    "description_ar": "كشف البوتات والقيود"
+  },
+  "self_actions": {
+    "triggers": ["اطردني", "طردني", "نزلني"],
+    "description": "Self-kick/demote",
+    "description_ar": "طرد او تنزيل النفس"
+  },
+  "time": {
+    "triggers": ["الوقت", "الساعه", "كم الساعه"],
+    "description": "Show current time",
+    "description_ar": "عرض الوقت الحالي"
+  },
+  "commands_menu": {
+    "triggers": ["الاوامر", "الاوامر🧾", "القائمه", "القائمه الرئيسيه"],
+    "description": "Show main commands menu",
+    "description_ar": "عرض قائمة الاوامر"
+  },
+  "restrictions": {
+    "triggers": ["رفع القيود", "رفع الادمنيه", "تنزيل الكل"],
+    "description": "Manage restrictions and roles",
+    "description_ar": "ادارة القيود والرتب"
+  },
+  "help_pages": {
+    "triggers": ["اوامر اضف📝", "اوامر الاذاعه📢", "اوامر التفعيل♻️"],
+    "description": "Help pages",
+    "description_ar": "صفحات المساعده"
+  },
+  "notifications": {
+    "triggers": ["تفعيل الاشعارات", "تعطيل الاشعارات"],
+    "description": "Developer notifications for new groups and private users",
+    "description_ar": "اشعارات المطور للمجموعات الجديده والمستخدمين الخاصين"
   }
 }

@@ -4,11 +4,21 @@ a single register_all_handlers() function for bot.py to call.
 """
 from telegram.ext import Application
 
-from . import start, admin, moderation, broadcast, games, tag, locks, permissions, youtube, fun, dm_relay
+from . import (
+    start, admin, moderation, broadcast, games, tag, locks,
+    permissions, youtube, fun, dm_relay, custom_commands,
+    user_info, auto_response, group_settings, misc_commands,
+    maintenance,
+    notifications,
+)
 
 
 def register_all_handlers(app: Application) -> None:
     """Register every handler module with the Application."""
+    # Notifications first (low group number for priority)
+    notifications.register(app)
+    maintenance.register(app)
+    
     start.register(app)
     admin.register(app)
     moderation.register(app)
@@ -20,3 +30,8 @@ def register_all_handlers(app: Application) -> None:
     youtube.register(app)
     fun.register(app)
     dm_relay.register(app)
+    custom_commands.register(app)
+    user_info.register(app)
+    auto_response.register(app)
+    group_settings.register(app)
+    misc_commands.register(app)
