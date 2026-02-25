@@ -1,5 +1,29 @@
+import logging
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from src.config import Config
+from src.constants.messages import (
+    MSG_PROMOTED, MSG_DEMOTED, MSG_NO_PERMISSION, MSG_USER_NOT_FOUND,
+    MSG_ALREADY_ROLE, MSG_CANT_ACTION_HIGHER, MSG_STATS,
+)
+from src.constants.roles import (
+    ROLE_SECONDARY_DEVELOPER, ROLE_ASSISTANT, ROLE_DEVELOPER, ROLE_OWNER,
+    ROLE_MAIN_CREATOR, ROLE_CREATOR, ROLE_MANAGER, ROLE_ADMIN, ROLE_VIP,
+    ROLE_MEMBER, ROLE_HIERARCHY, get_role_name, is_higher_role,
+    ROLE_NAMES, SUDO_ROLES, GROUP_ADMIN_ROLES,
+)
+from src.services.user_service import UserService
+from src.services.group_service import GroupService
+from src.services.redis_service import RedisService
 from src.utils.decorators import group_only
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from src.utils.text_utils import extract_user_id, format_user_list
+from src.utils.api_helpers import promote_member, demote_member, is_bot_admin
+
+logger = logging.getLogger(__name__)
+user_svc = UserService()
+group_svc = GroupService()
+redis_svc = RedisService()
+
 @group_only
 async def handle_developer_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """لوحة المطور — show developer control panel (sudo only)."""
