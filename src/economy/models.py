@@ -1,7 +1,7 @@
 import sqlite3
 from typing import Optional, List, Tuple
 
-DB_PATH = 'economy.db'
+DB_PATH = '/tmp/economy.db'
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)

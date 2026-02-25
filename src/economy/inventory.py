@@ -2,7 +2,7 @@ from src.economy.models import get_user
 from src.economy.items import get_item_rarity, ITEMS_DATABASE
 import sqlite3
 
-DB_PATH = 'economy.db'
+DB_PATH = '/tmp/economy.db'
 
 def add_item(user_id: int, item_name: str):
     rarity = get_item_rarity(item_name)

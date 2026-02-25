@@ -1,7 +1,7 @@
 import sqlite3
 from src.economy.items import get_item_rarity
 
-DB_PATH = 'economy.db'
+DB_PATH = '/tmp/economy.db'
 
 # List an item for sale or auction
 def list_item_for_sale(seller_id: int, item_name: str, price: int, is_auction: bool = False):

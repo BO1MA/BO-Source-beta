@@ -119,17 +119,30 @@ async def handle_developer_info(update: Update, context: ContextTypes.DEFAULT_TY
     )
 
 
+
 @group_only
 async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show bot info (البوت)."""
-    bot_user = await context.bot.get_me()
-    await update.message.reply_text(
-        f"✯ معلومات البوت:\n"
-        f"├─ الاسم: {bot_user.first_name}\n"
-        f"├─ اليوزر: @{bot_user.username}\n"
-        f"├─ الايدي: <code>{bot_user.id}</code>\n"
-        f"└─ المطور: @{Config.DEVELOPER_USERNAME}",
-        parse_mode="HTML"
+    """Respond to 'بوت' with photo, caption, and inline buttons (ported from rdodsudos.lua)."""
+    chat_id = update.effective_chat.id
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton('⌯ تــاكــي الــكـبـيـرر ⊁', url='https://t.me/D_k_j'),
+        ],
+        [
+            InlineKeyboardButton('00:00', url='https://t.me/x_clasic_x'),
+        ],
+    ])
+    caption = (
+        '◍ لو عايز بوت مميز بدون توقف وامان  .\n'
+        '◍قم بـ التواصل مع المطورين عبر الازرار تاليه .'
+    )
+    await context.bot.send_photo(
+        chat_id=chat_id,
+        photo='https://t.me/F_R_M1/407',
+        caption=caption,
+        reply_markup=keyboard,
+        parse_mode='HTML',
+        disable_web_page_preview=True
     )
 
 
