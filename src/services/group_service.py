@@ -1,8 +1,8 @@
+from __future__ import annotations
 """
 Group service — CRUD for group settings, locks, custom commands stored in Redis.
 Mirrors the group management features from bian.lua.
 """
-from __future__ import annotations
 
 import json
 import logging
