@@ -1,3 +1,4 @@
+from src.utils.decorators import group_only
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 @group_only
 async def handle_developer_panel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
