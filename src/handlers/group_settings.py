@@ -132,7 +132,6 @@ from src.constants.messages import (
 from src.services.user_service import UserService
 from src.services.group_service import GroupService
 from src.services.redis_service import RedisService
-from src.utils.decorators import group_only
 from src.config import Config
 
 logger = logging.getLogger(__name__)
