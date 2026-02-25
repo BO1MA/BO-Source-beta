@@ -53,6 +53,9 @@ async def _get_app() -> Application:
         register_all_handlers(_app)
         await _app.initialize()
         logger.info("Application initialized (webhook mode)")
+    # Always ensure initialized (for cold starts or Vercel reloads)
+    if not getattr(_app, '_initialized', False):
+        await _app.initialize()
     return _app
 
 
