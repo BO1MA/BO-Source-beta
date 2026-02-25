@@ -1,4 +1,15 @@
+import random
+import logging
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatType
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from src.constants.messages import (
+    GREETING_RESPONSES, CHAT_RESPONSES, WOULD_YOU_RATHER,
+    MSG_DEVELOPER_INFO, ADVICE_RESPONSES, INSULT_RESPONSES,
+)
+from src.services.group_service import GroupService
+from src.utils.decorators import group_only
+from src.config import Config
 # Private welcome handler with inline buttons
 async def handle_private_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send welcome message with buttons in private chat (on /start or 'start')."""
