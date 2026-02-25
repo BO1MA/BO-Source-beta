@@ -1,3 +1,10 @@
+import logging
+from telegram import Update
+from telegram.ext import ContextTypes
+from src.utils.decorators import group_only
+from src.constants.messages import MSG_NO_PERMISSION
+# ...other necessary imports...
+
 @group_only
 async def handle_toggle_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """حماية من السبام — toggle spam protection."""
