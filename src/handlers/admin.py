@@ -745,9 +745,9 @@ async def handle_group_list(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 def register(app: Application) -> None:
-        # Developer panel
-        app.add_handler(MessageHandler(filters.Regex("^(لوحة المطور|لوحة تحكم المطور|developer panel)$"), handle_developer_panel), group=10)
     """Register admin-related handlers."""
+    # Developer panel
+    app.add_handler(MessageHandler(filters.Regex("^(لوحة المطور|لوحة تحكم المطور|developer panel)$"), handle_developer_panel), group=10)
     G = filters.ChatType.GROUPS
 
     # Promote commands
