@@ -35,3 +35,9 @@ def register_all_handlers(app: Application) -> None:
     auto_response.register(app)
     group_settings.register(app)
     misc_commands.register(app)
+
+    # Register economy system handlers
+    from src.economy.handlers import register_economy_handlers
+    from src.economy.admin import register_economy_admin
+    register_economy_handlers(app)
+    register_economy_admin(app)

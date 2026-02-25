@@ -1,8 +1,8 @@
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
-from src.utils.decorators import group_only
 from src.constants.messages import MSG_NO_PERMISSION
+from src.utils.decorators import group_only
 # ...other necessary imports...
 
 @group_only
@@ -101,23 +101,6 @@ Group Settings handler — pin, welcome, rules, description, and other group man
 Ported from bian.lua / AVIRA.lua group settings commands.
 
 Commands:
-- تثبيت — pin a message
-- الغاء التثبيت — unpin a message
-- الغاء تثبيت الكل — unpin all messages
-- ضع ترحيب / وضع ترحيب — set welcome message
-- حذف الترحيب / مسح الترحيب — delete welcome message
-- الترحيب — show welcome message
-- ضع قوانين / وضع قوانين — set rules
-- حذف القوانين / مسح القوانين — delete rules
-- القوانين — show rules
-- ضع وصف / وضع وصف — set description
-- حذف الوصف / مسح الوصف — delete description
-- ضع رابط / وضع رابط — set group link
-- حذف الرابط / مسح الرابط — delete saved link
-- بوت غادر / غادر — bot leaves group
-- المحظورين — list banned users
-- المكتومين — list muted users
-- المقيدين — list restricted users
 """
 import logging
 
@@ -566,13 +549,12 @@ async def handle_list_restricted(update: Update, context: ContextTypes.DEFAULT_T
 
 
 def register(app: Application) -> None:
+    G = filters.ChatType.GROUPS
     # Advanced settings commands
     app.add_handler(MessageHandler(filters.Regex("^(حماية من السبام|حماية السبام)$") & G, handle_toggle_spam), group=35)
     app.add_handler(MessageHandler(filters.Regex("^تعيين التكرار \\d+$") & G, handle_set_flood_limit), group=35)
     app.add_handler(MessageHandler(filters.Regex("^(استقبال الطلبات|استقبال الطلب)$") & G, handle_toggle_requests), group=35)
     app.add_handler(MessageHandler(filters.Regex("^(عرض الاعدادات|الاعدادات|settings)$") & G, handle_show_settings), group=35)
-
-    G = filters.ChatType.GROUPS
     # VIP/Free group type commands
     app.add_handler(MessageHandler(filters.Regex("^ترقية$") & G, handle_upgrade_vip), group=35)
     app.add_handler(MessageHandler(filters.Regex("^عادية$") & G, handle_downgrade_free), group=35)
