@@ -45,3 +45,18 @@ def buy_item(item_id: int, buyer_id: int):
     conn.commit()
     conn.close()
     return seller_id, item_name
+
+# Add a function to modify an existing item in the marketplace
+def modify_item(item_id, new_price):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT id FROM marketplace WHERE id = ?", (item_id,))
+    item = c.fetchone()
+    if not item:
+        conn.close()
+        return "❌ السلعة غير موجودة في السوق."
+
+    c.execute("UPDATE marketplace SET price = ? WHERE id = ?", (new_price, item_id))
+    conn.commit()
+    conn.close()
+    return f"✅ تم تعديل سعر السلعة بنجاح إلى {new_price} نقطة."

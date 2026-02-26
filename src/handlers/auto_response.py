@@ -10,6 +10,9 @@ from src.constants.messages import (
 from src.services.group_service import GroupService
 from src.utils.decorators import group_only
 from src.config import Config
+from src.economy.bank_system import open_bank_account, get_balance, claim_daily, transfer_points
+from src.economy.marketplace import add_item, list_items, buy_item
+
 # Private welcome handler with inline buttons
 async def handle_private_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send welcome message with buttons in private chat (on /start or 'start')."""
@@ -123,6 +126,7 @@ async def handle_developer_info(update: Update, context: ContextTypes.DEFAULT_TY
 @group_only
 async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Respond to 'بوت' with photo, caption, and inline buttons."""
+    logger.info("handle_bot_info triggered for user: %s", update.effective_user.id)
     chat_id = update.effective_chat.id
     keyboard = InlineKeyboardMarkup([
         [
@@ -279,6 +283,88 @@ async def handle_insult_target(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("✯ رد على شخص لاشتمه 😂")
 
 
+@group_only
+async def handle_open_bank(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    response = open_bank_account(user_id)
+    await update.message.reply_text(response)
+
+@group_only
+async def handle_check_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    balance = get_balance(user_id)
+    await update.message.reply_text(f"🏦 رصيدك الحالي هو: {balance} نقطة.")
+
+@group_only
+async def handle_claim_daily(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    response = claim_daily(user_id)
+    await update.message.reply_text(response)
+
+@group_only
+async def handle_transfer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text("❌ استخدم الأمر كالتالي: /transfer [المعرف] [المبلغ]")
+        return
+
+    try:
+        target_id = int(args[0])
+        amount = int(args[1])
+        user_id = update.effective_user.id
+        response = transfer_points(user_id, target_id, amount)
+        await update.message.reply_text(response)
+    except ValueError:
+        await update.message.reply_text("❌ تأكد من إدخال معرف صحيح ومبلغ صحيح.")
+
+
+@group_only
+async def handle_list_market(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = list_items()
+    if not items:
+        await update.message.reply_text("❌ السوق فارغ حاليًا.")
+        return
+
+    response = "📦 العناصر المتوفرة في السوق:\n"
+    for item in items:
+        item_id, seller_id, item_name, item_rarity, price = item
+        response += f"🔹 [{item_id}] {item_name} ({item_rarity}) - {price} نقطة\n"
+    await update.message.reply_text(response)
+
+@group_only
+async def handle_add_market(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 3:
+        await update.message.reply_text("❌ استخدم الأمر كالتالي: /add_market [اسم العنصر] [الندرة] [السعر]")
+        return
+
+    item_name = args[0]
+    item_rarity = args[1]
+    try:
+        price = int(args[2])
+        user_id = update.effective_user.id
+        response = add_item(user_id, item_name, item_rarity, price)
+        await update.message.reply_text(response)
+    except ValueError:
+        await update.message.reply_text("❌ تأكد من إدخال سعر صحيح.")
+
+
+@group_only
+async def handle_buy_market(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 1:
+        await update.message.reply_text("❌ استخدم الأمر كالتالي: /buy_market [رقم العنصر]")
+        return
+
+    try:
+        item_id = int(args[0])
+        user_id = update.effective_user.id
+        response = buy_item(user_id, item_id)
+        await update.message.reply_text(response)
+    except ValueError:
+        await update.message.reply_text("❌ تأكد من إدخال رقم عنصر صحيح.")
+
+
 def register(app: Application) -> None:
     # Private welcome handler
     app.add_handler(MessageHandler(
@@ -290,85 +376,85 @@ def register(app: Application) -> None:
 
     # Contact card (إيمو / أشموديل / احمد)
     app.add_handler(MessageHandler(
-        filters.Regex("^(ايمو|إيمو|اشموديل|أشموديل|احمد)$") & G,
+        filters.Regex(r"^(ايمو|إيمو|اشموديل|أشموديل|احمد)$") & G,
         handle_taki_contact
     ), group=40)
 
     # Developer contact
     app.add_handler(MessageHandler(
-        filters.Regex("^(مين نصبلك|عايزه بوت|عايز بوت)$") & G,
+        filters.Regex(r"^(مين نصبلك|عايزه بوت|عايز بوت)$") & G,
         handle_developer_contact
     ), group=30)  # Adjusted priority
 
     # Developer info
     app.add_handler(MessageHandler(
-        filters.Regex("^(المطور|المبرمج|مطور البوت|المبرمج أشموديل|المبرمج إيمو|المبرمج احمد)$") & G,
+        filters.Regex(r"^(المطور|المبرمج|مطور البوت|المبرمج أشموديل|المبرمج إيمو|المبرمج احمد)$") & G,
         handle_developer_info
     ), group=40)
 
     # Source info
     app.add_handler(MessageHandler(
-        filters.Regex("^(السورس|سورس|يا سورس)$") & G,
+        filters.Regex(r"^(السورس|سورس|يا سورس)$") & G,
         handle_source_info
     ), group=40)
 
     # Bot info
     app.add_handler(MessageHandler(
-        filters.Regex("^(\bالبوت\b|\bبوت\b)$") & G,  # Refined regex to match whole words
+        filters.Regex(r"^(البوت|بوت)$") & G,  # Simplified regex for better Arabic matching
         handle_bot_info
     ), group=40)
 
     # Would you rather
     app.add_handler(MessageHandler(
-        filters.Regex("^(لو خيروك|خيروك)$") & G,
+        filters.Regex(r"^(لو خيروك|خيروك)$") & G,
         handle_would_you_rather
     ), group=40)
 
     # Reverse text
     app.add_handler(MessageHandler(
-        filters.Regex("^العكس") & G,
+        filters.Regex(r"^العكس") & G,
         handle_reverse_text
     ), group=40)
 
     # Kick me joke
     app.add_handler(MessageHandler(
-        filters.Regex("^(اطردني|طردني)$") & G,
+        filters.Regex(r"^(اطردني|طردني)$") & G,
         handle_kick_me
     ), group=40)
 
     # Marry me joke
     app.add_handler(MessageHandler(
-        filters.Regex("^تتجوزيني$") & G,
+        filters.Regex(r"^تتجوزيني$") & G,
         handle_marry_me
     ), group=40)
 
     # Sing for me
     app.add_handler(MessageHandler(
-        filters.Regex("^غنيلي$") & G,
+        filters.Regex(r"^غنيلي$") & G,
         handle_sing_for_me
     ), group=40)
 
     # Voice recognition placeholder
     app.add_handler(MessageHandler(
-        filters.Regex("^(وش بيقول|بيقول اي|\\?\\?|؟؟)$") & G,
+        filters.Regex(r"^(وش بيقول|بيقول اي|\?\?|؟؟)$") & G,
         handle_pronounce
     ), group=40)
 
     # Statistics
     app.add_handler(MessageHandler(
-        filters.Regex("^الاحصائيات$") & G,
+        filters.Regex(r"^الاحصائيات$") & G,
         handle_statistics
     ), group=40)
 
     # Advice
     app.add_handler(MessageHandler(
-        filters.Regex("^(انصح|انصحني|انصحيني|انصحنى|نصيحه|نصيحة)$") & G,
+        filters.Regex(r"^(انصح|انصحني|انصحيني|انصحنى|نصيحه|نصيحة)$") & G,
         handle_advice
     ), group=40)
 
     # Insult target (playful)
     app.add_handler(MessageHandler(
-        filters.Regex("^(اشتم|اشتمو|اشتمه|شتمو|شتمه)$") & G,
+        filters.Regex(r"^(اشتم|اشتمو|اشتمه|شتمو|شتمه)$") & G,
         handle_insult_target
     ), group=40)
 
@@ -377,3 +463,12 @@ def register(app: Application) -> None:
         filters.TEXT & G,
         handle_greetings
     ), group=150)
+
+    # New commands
+    app.add_handler(MessageHandler(filters.Regex("^/open_bank$"), handle_open_bank), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/balance$"), handle_check_balance), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/daily$"), handle_claim_daily), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/transfer"), handle_transfer), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/list_market$"), handle_list_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/add_market"), handle_add_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/buy_market"), handle_buy_market), group=40)
