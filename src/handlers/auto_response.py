@@ -122,7 +122,7 @@ async def handle_developer_info(update: Update, context: ContextTypes.DEFAULT_TY
 
 @group_only
 async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to 'بوت' with photo, caption, and inline buttons (ported from rdodsudos.lua)."""
+    """Respond to 'بوت' with photo, caption, and inline buttons."""
     chat_id = update.effective_chat.id
     keyboard = InlineKeyboardMarkup([
         [
@@ -298,7 +298,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(
         filters.Regex("^(مين نصبلك|عايزه بوت|عايز بوت)$") & G,
         handle_developer_contact
-    ), group=40)
+    ), group=30)  # Adjusted priority
 
     # Developer info
     app.add_handler(MessageHandler(
@@ -314,7 +314,7 @@ def register(app: Application) -> None:
 
     # Bot info
     app.add_handler(MessageHandler(
-        filters.Regex("^(البوت|بوت)$") & G,
+        filters.Regex("^(\bالبوت\b|\bبوت\b)$") & G,  # Refined regex to match whole words
         handle_bot_info
     ), group=40)
 
