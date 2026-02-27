@@ -7,10 +7,6 @@ import tempfile
 # Switch to an in-memory SQLite database for serverless environments
 DB_PATH = ":memory:"
 
-# Ensure the database file exists or can be created
-if DB_PATH != ":memory:" and not os.path.exists(DB_PATH):
-    open(DB_PATH, 'a').close()
-
 # Initialize the database
 def init_db():
     conn = sqlite3.connect(DB_PATH)
