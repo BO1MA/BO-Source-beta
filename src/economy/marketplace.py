@@ -60,3 +60,16 @@ def modify_item(item_id, new_price):
     conn.commit()
     conn.close()
     return f"✅ تم تعديل سعر السلعة بنجاح إلى {new_price} نقطة."
+
+# Updated the `add_item` function to include `item_rarity` as a parameter
+def add_item(seller_id: int, item_name: str, item_rarity: str, price: int):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        '''INSERT INTO marketplace (seller_id, item_name, item_rarity, price, is_auction, top_bidder, top_bid)
+           VALUES (?, ?, ?, ?, 0, NULL, NULL)''',
+        (seller_id, item_name, item_rarity, price)
+    )
+    conn.commit()
+    conn.close()
+    return f"✅ تم إضافة السلعة '{item_name}' إلى السوق بسعر {price} نقطة."
