@@ -4,8 +4,8 @@ import os
 from datetime import datetime, timedelta
 import tempfile
 
-# Update the database path to use a writable temporary directory in serverless environments
-DB_PATH = tempfile.gettempdir() + "/bank_system.db"
+# Switch to an in-memory SQLite database for serverless environments
+DB_PATH = ":memory:"
 
 # Ensure the database file exists or can be created
 if not os.path.exists(DB_PATH):
