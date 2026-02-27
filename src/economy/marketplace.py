@@ -73,3 +73,12 @@ def add_item(seller_id: int, item_name: str, item_rarity: str, price: int):
     conn.commit()
     conn.close()
     return f"✅ تم إضافة السلعة '{item_name}' إلى السوق بسعر {price} نقطة."
+
+# List all items in the marketplace
+def list_items():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT id, seller_id, item_name, item_rarity, price, is_auction FROM marketplace")
+    items = c.fetchall()
+    conn.close()
+    return items
