@@ -1,3 +1,4 @@
+import os  # Ensure the 'os' module is imported for environment variable access
 import redis
 
 # Initialize Redis connection
