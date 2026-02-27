@@ -9,6 +9,7 @@ import asyncio
 import sys
 import os
 from http.server import BaseHTTPRequestHandler
+import re
 
 # Ensure project root is on the path so `src` is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

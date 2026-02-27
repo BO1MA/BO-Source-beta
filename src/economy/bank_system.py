@@ -1,10 +1,17 @@
 import sqlite3
 import random
+import os
 from datetime import datetime, timedelta
+import tempfile
+
+# Update the database path to use a writable temporary directory in serverless environments
+DB_PATH = tempfile.gettempdir() + "/bank_system.db"
+
+# Ensure the database file exists or can be created
+if not os.path.exists(DB_PATH):
+    open(DB_PATH, 'a').close()
 
 # Initialize the database
-DB_PATH = "bank_system.db"
-
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()

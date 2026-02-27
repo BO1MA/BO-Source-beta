@@ -376,85 +376,85 @@ def register(app: Application) -> None:
 
     # Contact card (إيمو / أشموديل / احمد)
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(ايمو|إيمو|اشموديل|أشموديل|احمد)$") & G,
+        filters.Regex(r"^(ايمو|إيمو|اشموديل|أشموديل|احمد)$", flags=re.IGNORECASE) & G,
         handle_taki_contact
     ), group=40)
 
     # Developer contact
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(مين نصبلك|عايزه بوت|عايز بوت)$") & G,
+        filters.Regex(r"^(مين نصبلك|عايزه بوت|عايز بوت)$", flags=re.IGNORECASE) & G,
         handle_developer_contact
     ), group=30)  # Adjusted priority
 
     # Developer info
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(المطور|المبرمج|مطور البوت|المبرمج أشموديل|المبرمج إيمو|المبرمج احمد)$") & G,
+        filters.Regex(r"^(المطور|المبرمج|مطور البوت|المبرمج أشموديل|المبرمج إيمو|المبرمج احمد)$", flags=re.IGNORECASE) & G,
         handle_developer_info
     ), group=40)
 
     # Source info
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(السورس|سورس|يا سورس)$") & G,
+        filters.Regex(r"^(السورس|سورس|يا سورس)$", flags=re.IGNORECASE) & G,
         handle_source_info
     ), group=40)
 
     # Bot info
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(البوت|بوت)$") & G,  # Simplified regex for better Arabic matching
+        filters.Regex(r"^(البوت|بوت)$", flags=re.IGNORECASE) & G,
         handle_bot_info
     ), group=40)
 
     # Would you rather
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(لو خيروك|خيروك)$") & G,
+        filters.Regex(r"^(لو خيروك|خيروك)$", flags=re.IGNORECASE) & G,
         handle_would_you_rather
     ), group=40)
 
     # Reverse text
     app.add_handler(MessageHandler(
-        filters.Regex(r"^العكس") & G,
+        filters.Regex(r"^العكس", flags=re.IGNORECASE) & G,
         handle_reverse_text
     ), group=40)
 
     # Kick me joke
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(اطردني|طردني)$") & G,
+        filters.Regex(r"^(اطردني|طردني)$", flags=re.IGNORECASE) & G,
         handle_kick_me
     ), group=40)
 
     # Marry me joke
     app.add_handler(MessageHandler(
-        filters.Regex(r"^تتجوزيني$") & G,
+        filters.Regex(r"^تتجوزيني$", flags=re.IGNORECASE) & G,
         handle_marry_me
     ), group=40)
 
     # Sing for me
     app.add_handler(MessageHandler(
-        filters.Regex(r"^غنيلي$") & G,
+        filters.Regex(r"^غنيلي$", flags=re.IGNORECASE) & G,
         handle_sing_for_me
     ), group=40)
 
     # Voice recognition placeholder
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(وش بيقول|بيقول اي|\?\?|؟؟)$") & G,
+        filters.Regex(r"^(وش بيقول|بيقول اي|\?\?|؟؟)$", flags=re.IGNORECASE) & G,
         handle_pronounce
     ), group=40)
 
     # Statistics
     app.add_handler(MessageHandler(
-        filters.Regex(r"^الاحصائيات$") & G,
+        filters.Regex(r"^الاحصائيات$", flags=re.IGNORECASE) & G,
         handle_statistics
     ), group=40)
 
     # Advice
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(انصح|انصحني|انصحيني|انصحنى|نصيحه|نصيحة)$") & G,
+        filters.Regex(r"^(انصح|انصحني|انصحيني|انصحنى|نصيحه|نصيحة)$", flags=re.IGNORECASE) & G,
         handle_advice
     ), group=40)
 
     # Insult target (playful)
     app.add_handler(MessageHandler(
-        filters.Regex(r"^(اشتم|اشتمو|اشتمه|شتمو|شتمه)$") & G,
+        filters.Regex(r"^(اشتم|اشتمو|اشتمه|شتمو|شتمه)$", flags=re.IGNORECASE) & G,
         handle_insult_target
     ), group=40)
 
@@ -465,10 +465,10 @@ def register(app: Application) -> None:
     ), group=150)
 
     # New commands
-    app.add_handler(MessageHandler(filters.Regex("^/open_bank$"), handle_open_bank), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/balance$"), handle_check_balance), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/daily$"), handle_claim_daily), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/transfer"), handle_transfer), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/list_market$"), handle_list_market), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/add_market"), handle_add_market), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/buy_market"), handle_buy_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/open_bank$", flags=re.IGNORECASE), handle_open_bank), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/balance$", flags=re.IGNORECASE), handle_check_balance), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/daily$", flags=re.IGNORECASE), handle_claim_daily), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/transfer", flags=re.IGNORECASE), handle_transfer), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/list_market$", flags=re.IGNORECASE), handle_list_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/add_market", flags=re.IGNORECASE), handle_add_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex("^/buy_market", flags=re.IGNORECASE), handle_buy_market), group=40)
