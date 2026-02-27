@@ -159,7 +159,7 @@ COMMANDS: dict[str, list[str]] = {
     "set_link": ["ضع رابط"],
     "delete_link": ["حذف الرابط", "مسح الرابط", "رابط الحذف", "روابط الحذف"],
 
-    # ── Pin ──
+    #── Pin ──
     "pin": ["تثبيت"],
     "unpin": ["الغاء التثبيت"],
     "unpin_all": ["الغاء تثبيت الكل"],
@@ -286,7 +286,7 @@ LOCK_FEATURES: dict[str, str] = {
     "username_link": "المعرفات",
     "keyboard": "الكيبورد",
     "notification": "الاشعارات",
-    "media_edit": "تعديل الميديا",
+    "media_edit": " تعديل الميديا",
 }
 
 # Arabic aliases → feature key (for lock/unlock command parsing)
@@ -340,7 +340,7 @@ LOCK_ALIASES: dict[str, str] = {
     "الكيبورد": "keyboard",
     "الكلايش": "keyboard",
     "الاشعارات": "notification",
-    "تعديل الميديا": "media_edit",
+    " تعديل الميديا": "media_edit",
     "التعديل الميديا": "media_edit",
 }
 
