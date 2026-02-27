@@ -8,7 +8,7 @@ import tempfile
 DB_PATH = ":memory:"
 
 # Ensure the database file exists or can be created
-if not os.path.exists(DB_PATH):
+if DB_PATH != ":memory:" and not os.path.exists(DB_PATH):
     open(DB_PATH, 'a').close()
 
 # Initialize the database
