@@ -402,7 +402,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(
         filters.Regex(r"^(البوت|بوت)$", flags=re.IGNORECASE) & G,
         handle_bot_info
-    ), group=40)
+    ), group=10)  # Set a higher priority
 
     # Would you rather
     app.add_handler(MessageHandler(

@@ -646,3 +646,11 @@ async def handle_game_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
     # Callback query
     app.add_handler(CallbackQueryHandler(handle_game_callback, pattern="^game:"))
+
+def register(app):
+    """Register all game-related handlers with the application."""
+    app.add_handler(MessageHandler(filters.Regex("^(لعبة البنك|لعبه البنك|البنك)$"), handle_bank_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(تخمين|خمن)$"), handle_guess_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(اسرع|الاسرع|ترتيب|ترتيب الاوامر)$"), handle_speed_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(الحروف|حروف|حرف)$"), handle_letters_game), group=15)
+    app.add_handler(MessageHandler(filters.Regex("^(حزوره|الحزوره)$"), handle_riddle_game), group=15)

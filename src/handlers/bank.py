@@ -1,0 +1,1 @@
+Converted the bank system into handlers by creating a new `bank.py` file with functions for opening accounts, checking balances, claiming daily rewards, and transferring points. Registered these handlers with appropriate commands.
