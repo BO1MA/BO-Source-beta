@@ -62,4 +62,4 @@ def transfer_points(from_user, to_user, amount, category="default"):
 
     update_balance(from_user, -amount)
     update_balance(to_user, amount)
-    return f"✅ تم تحويل {amount} نقطة بنجاح من حسابك إلى حساب المستخدم الآخر في الفئة '{category}'.
+    return f"✅ تم تحويل {amount} نقطة بنجاح من حسابك إلى حساب المستخدم الآخر في الفئة '{category}'."
