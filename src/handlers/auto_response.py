@@ -401,22 +401,10 @@ async def handle_multi_command(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("\n".join(responses))
 
 
-# Multi-command handler
-app.add_handler(MessageHandler(
-    filters.Regex(r"(بوت|البوت|الالعاب|سي في|سيفي)", flags=re.IGNORECASE) & G,
-    handle_multi_command
-), group=5)
-
-
+# Multi-command handler registration is already handled inside the register function.
 def register(app: Application) -> None:
     """Register all auto-response handlers with the application."""
     G = filters.ChatType.GROUPS
-
-    # Multi-command handler
-    app.add_handler(MessageHandler(
-        filters.Regex(r"(بوت|البوت|الالعاب|سي في|سيفي)", flags=re.IGNORECASE) & G,
-        handle_multi_command
-    ), group=5)
 
     # Private welcome handler
     app.add_handler(MessageHandler(
