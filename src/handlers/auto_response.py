@@ -409,13 +409,20 @@ app.add_handler(MessageHandler(
 
 
 def register(app: Application) -> None:
+    """Register all auto-response handlers with the application."""
+    G = filters.ChatType.GROUPS
+
+    # Multi-command handler
+    app.add_handler(MessageHandler(
+        filters.Regex(r"(بوت|البوت|الالعاب|سي في|سيفي)", flags=re.IGNORECASE) & G,
+        handle_multi_command
+    ), group=5)
+
     # Private welcome handler
     app.add_handler(MessageHandler(
         filters.Regex("^(start|/start)$") & filters.ChatType.PRIVATE,
         handle_private_start
     ), group=0)
-    """Register auto-response handlers."""
-    G = filters.ChatType.GROUPS
 
     # Contact card (إيمو / أشموديل / احمد)
     app.add_handler(MessageHandler(
@@ -427,7 +434,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(
         filters.Regex(r"^(مين نصبلك|عايزه بوت|عايز بوت)$", flags=re.IGNORECASE) & G,
         handle_developer_contact
-    ), group=30)  # Adjusted priority
+    ), group=30)
 
     # Developer info
     app.add_handler(MessageHandler(
@@ -445,7 +452,7 @@ def register(app: Application) -> None:
     app.add_handler(MessageHandler(
         filters.Regex(r"^(البوت|بوت)$", flags=re.IGNORECASE) & G,
         handle_bot_info
-    ), group=10)  # Set a higher priority
+    ), group=10)
 
     # Would you rather
     app.add_handler(MessageHandler(
