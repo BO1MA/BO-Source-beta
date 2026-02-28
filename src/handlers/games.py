@@ -612,7 +612,8 @@ async def handle_game_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.answer()
     data = query.data
     game_help = {
-        "game:emoji": "ارسل 'الالعاب$") & G, handle_emoji_game), group=15)
+        "game:emoji": "ارسل 'الالعاب$"
+    }
     app.add_handler(MessageHandler(filters.Regex("^(تخمين|خمن)$") & G, handle_guess_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(اسرع|الاسرع|ترتيب|ترتيب الاوامر)$") & G, handle_speed_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^ترتيب الاسرع$") & G, handle_fastest_leaderboard), group=15)
