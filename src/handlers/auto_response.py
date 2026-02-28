@@ -365,6 +365,32 @@ async def handle_buy_market(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await update.message.reply_text("❌ تأكد من إدخال رقم عنصر صحيح.")
 
 
+@group_only
+async def handle_multi_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle multiple commands and send all related responses."""
+    text = update.message.text
+    responses = []
+
+    if "بوت" in text or "البوت" in text:
+        responses.append("◍ لو عايز بوت مميز بدون توقف وامان .")
+
+    if "الالعاب" in text:
+        responses.append("🎮 قائمة الألعاب: تخمين، الاسرع، الحروف، حزوره، والمزيد!")
+
+    if "سي في" in text or "سيفي" in text:
+        responses.append("📄 السيرة الذاتية: مطور محترف في تطوير البوتات.")
+
+    if responses:
+        await update.message.reply_text("\n".join(responses))
+
+
+# Multi-command handler
+app.add_handler(MessageHandler(
+    filters.Regex(r"(بوت|البوت|الالعاب|سي في|سيفي)", flags=re.IGNORECASE) & G,
+    handle_multi_command
+), group=5)
+
+
 def register(app: Application) -> None:
     # Private welcome handler
     app.add_handler(MessageHandler(
