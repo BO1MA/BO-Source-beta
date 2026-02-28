@@ -1,5 +1,6 @@
 import random
 import logging
+import itertools
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatType
 from telegram.ext import Application, ContextTypes, MessageHandler, filters
@@ -59,18 +60,31 @@ group_svc = GroupService()
 
 @group_only
 async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to common greetings."""
+    """Respond to common greetings with different responses each time."""
     text = (update.message.text or "").strip()
 
     # Check GREETING_RESPONSES
     for trigger, responses in GREETING_RESPONSES.items():
         if trigger in text:
-            await update.message.reply_text(random.choice(responses))
+            if not hasattr(context.chat_data, 'greeting_cycle'):
+                context.chat_data['greeting_cycle'] = {}
+            if trigger not in context.chat_data['greeting_cycle']:
+                context.chat_data['greeting_cycle'][trigger] = itertools.cycle(responses)
+
+            response = next(context.chat_data['greeting_cycle'][trigger])
+            await update.message.reply_text(response)
             return
 
     # Check CHAT_RESPONSES (exact match)
     if text in CHAT_RESPONSES:
-        await update.message.reply_text(CHAT_RESPONSES[text])
+        responses = CHAT_RESPONSES[text]
+        if not hasattr(context.chat_data, 'chat_cycle'):
+            context.chat_data['chat_cycle'] = {}
+        if text not in context.chat_data['chat_cycle']:
+            context.chat_data['chat_cycle'][text] = itertools.cycle(responses)
+
+        response = next(context.chat_data['chat_cycle'][text])
+        await update.message.reply_text(response)
         return
 
 
@@ -174,8 +188,11 @@ async def handle_source_info(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 @group_only
 async def handle_would_you_rather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """لو خيروك — Would you rather game."""
-    option1, option2 = random.choice(WOULD_YOU_RATHER)
+    """Respond to 'لو خيروك' with different options each time."""
+    if not hasattr(context.chat_data, 'wyr_cycle'):
+        context.chat_data['wyr_cycle'] = itertools.cycle(WOULD_YOU_RATHER)
+
+    option1, option2 = next(context.chat_data['wyr_cycle'])
     user = update.effective_user
 
     await update.message.reply_text(
