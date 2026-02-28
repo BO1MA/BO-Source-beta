@@ -28,6 +28,7 @@ from src.services.redis_service import RedisService
 from src.utils.decorators import group_only
 from src.utils.keyboard import build_games_keyboard
 from src.utils.api_helpers import check_channel_membership
+from src.economy.bank_system import update_balance, get_balance, has_bank_account, open_bank_account
 
 logger = logging.getLogger(__name__)
 user_svc = UserService()
@@ -124,6 +125,13 @@ async def _check_games_enabled(update, context) -> bool:
                 pass
     return True
 
+async def _check_user_has_bank_account(update, context):
+    """Ensure the user has a bank account before playing games."""
+    user_id = update.effective_user.id
+    if not has_bank_account(user_id):
+        await update.message.reply_text("❌ You need a bank account to play games. Creating one for you...")
+        open_bank_account(user_id)
+        await update.message.reply_text("✅ Bank account created successfully! You can now play games.")
 
 def _game_key(game_type: str, chat_id: int) -> str:
     return f"game:{game_type}:{chat_id}"
@@ -174,7 +182,7 @@ async def handle_emoji_answer(update: Update, context: ContextTypes.DEFAULT_TYPE
     redis_svc.delete(_game_key("emoji", chat_id))
     winner = update.effective_user
     await _award_point(chat_id, winner.id)
-    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ سمايل , سمايلات }")
+    await update.message.reply_text("✯الف مبروك لقد فزت\n ✯للعب مره اخره ارسل »{ السمايلات , السمايلات }")
 
 
 # ══════════════════════════════════════════════════
@@ -604,34 +612,7 @@ async def handle_game_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.answer()
     data = query.data
     game_help = {
-        "game:emoji": "ارسل 'السمايلات' لبدء اللعبه",
-        "game:guess": "ارسل 'تخمين' لبدء اللعبه",
-        "game:fastest": "ارسل 'الاسرع' لبدء لعبة السرعه",
-        "game:letters": "ارسل 'الحروف' لبدء اللعبه",
-        "game:riddle": "ارسل 'حزوره' لبدء اللعبه",
-        "game:meaning": "ارسل 'معاني' لبدء اللعبه",
-        "game:ring": "ارسل 'محيبس' لبدء اللعبه",
-        "game:different": "ارسل 'المختلف' لبدء اللعبه",
-        "game:math": "ارسل 'رياضيات' لبدء اللعبه",
-        "game:english": "ارسل 'انكليزي' لبدء اللعبه",
-        "game:proverb": "ارسل 'امثله' لبدء اللعبه",
-        "game:scramble": "ارسل 'كلمات' لبدء اللعبه",
-    }
-    if data in game_help:
-        await query.message.reply_text(game_help[data])
-
-
-# ══════════════════════════════════════════════════
-# Registration
-# ══════════════════════════════════════════════════
-
-def register(app: Application) -> None:
-    """Register all 12 game handlers."""
-    G = filters.ChatType.GROUPS
-
-    # Game starters
-    app.add_handler(MessageHandler(filters.Regex("^الالعاب$") & G, handle_games_menu), group=15)
-    app.add_handler(MessageHandler(filters.Regex("^(السمايلات|السمايل|سمايل|سمايلات)$") & G, handle_emoji_game), group=15)
+        "game:emoji": "ارسل 'الالعاب$") & G, handle_emoji_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(تخمين|خمن)$") & G, handle_guess_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^(اسرع|الاسرع|ترتيب|ترتيب الاوامر)$") & G, handle_speed_game), group=15)
     app.add_handler(MessageHandler(filters.Regex("^ترتيب الاسرع$") & G, handle_fastest_leaderboard), group=15)
