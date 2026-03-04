@@ -1,18 +1,28 @@
-import random
-import logging
+"""Auto-response handler for common chat triggers and utility commands."""
+
 import itertools
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+import logging
+import random
+import re
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatType
 from telegram.ext import Application, ContextTypes, MessageHandler, filters
+
+from src.config import Config
 from src.constants.messages import (
-    GREETING_RESPONSES, CHAT_RESPONSES, WOULD_YOU_RATHER,
-    MSG_DEVELOPER_INFO, ADVICE_RESPONSES, INSULT_RESPONSES,
+    ADVICE_RESPONSES,
+    CHAT_RESPONSES,
+    GREETING_RESPONSES,
+    INSULT_RESPONSES,
+    MSG_DEVELOPER_INFO,
+    WOULD_YOU_RATHER,
 )
+from src.economy.bank_system import claim_daily, get_balance, open_bank_account, transfer_points
+from src.economy.marketplace import add_item, buy_item, list_items
 from src.services.group_service import GroupService
 from src.utils.decorators import group_only
-from src.config import Config
-from src.economy.bank_system import open_bank_account, get_balance, claim_daily, transfer_points
-from src.economy.marketplace import add_item, list_items, buy_item
+
 
 # Private welcome handler with inline buttons
 async def handle_private_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -28,31 +38,6 @@ async def handle_private_start(update: Update, context: ContextTypes.DEFAULT_TYP
         "يمكنك طلب البوت لمجموعتك أو التواصل مع الدعم عبر الازرار بالاسفل."
     )
     await update.message.reply_text(msg, reply_markup=keyboard)
-"""
-Auto-response handler — responds to greetings and common phrases automatically.
-Also includes developer contact commands and "Would You Rather" game.
-Ported from bian.lua / AVIRA.lua auto-response and rdodsudos.lua.
-
-Features:
-- Greeting responses (السلام عليكم, صباح الخير, etc.)
-- Chat responses (انا جيت, باي, حبيبي, etc.)
-- Developer contact (مين نصبلك, عايزه بوت)
-- Would you rather (لو خيروك)
-- Reverse text (العكس)
-"""
-import random
-import logging
-
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, ContextTypes, MessageHandler, filters
-
-from src.constants.messages import (
-    GREETING_RESPONSES, CHAT_RESPONSES, WOULD_YOU_RATHER,
-    MSG_DEVELOPER_INFO, ADVICE_RESPONSES, INSULT_RESPONSES,
-)
-from src.services.group_service import GroupService
-from src.utils.decorators import group_only
-from src.config import Config
 
 logger = logging.getLogger(__name__)
 group_svc = GroupService()
@@ -66,7 +51,7 @@ async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Check GREETING_RESPONSES
     for trigger, responses in GREETING_RESPONSES.items():
         if trigger in text:
-            if not hasattr(context.chat_data, 'greeting_cycle'):
+            if 'greeting_cycle' not in context.chat_data:
                 context.chat_data['greeting_cycle'] = {}
             if trigger not in context.chat_data['greeting_cycle']:
                 context.chat_data['greeting_cycle'][trigger] = itertools.cycle(responses)
@@ -78,7 +63,7 @@ async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Check CHAT_RESPONSES (exact match)
     if text in CHAT_RESPONSES:
         responses = CHAT_RESPONSES[text]
-        if not hasattr(context.chat_data, 'chat_cycle'):
+        if 'chat_cycle' not in context.chat_data:
             context.chat_data['chat_cycle'] = {}
         if text not in context.chat_data['chat_cycle']:
             context.chat_data['chat_cycle'][text] = itertools.cycle(responses)
@@ -189,7 +174,7 @@ async def handle_source_info(update: Update, context: ContextTypes.DEFAULT_TYPE)
 @group_only
 async def handle_would_you_rather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Respond to 'لو خيروك' with different options each time."""
-    if not hasattr(context.chat_data, 'wyr_cycle'):
+    if 'wyr_cycle' not in context.chat_data:
         context.chat_data['wyr_cycle'] = itertools.cycle(WOULD_YOU_RATHER)
 
     option1, option2 = next(context.chat_data['wyr_cycle'])
@@ -385,7 +370,7 @@ async def handle_buy_market(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 @group_only
 async def handle_multi_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle multiple commands and send all related responses."""
-    text = update.message.text
+    text = (update.message.text or "")
     responses = []
 
     if "بوت" in text or "البوت" in text:
@@ -408,7 +393,7 @@ def register(app: Application) -> None:
 
     # Private welcome handler
     app.add_handler(MessageHandler(
-        filters.Regex("^(start|/start)$") & filters.ChatType.PRIVATE,
+        filters.Regex(r"^(?:start|/start)$", flags=re.IGNORECASE) & filters.ChatType.PRIVATE,
         handle_private_start
     ), group=0)
 
@@ -502,11 +487,17 @@ def register(app: Application) -> None:
         handle_greetings
     ), group=150)
 
+    # Multi-keyword responder
+    app.add_handler(MessageHandler(
+        filters.Regex(r"(البوت|بوت|الالعاب|سي في|سيفي)", flags=re.IGNORECASE) & G,
+        handle_multi_command
+    ), group=35)
+
     # New commands
-    app.add_handler(MessageHandler(filters.Regex("^/open_bank$", flags=re.IGNORECASE), handle_open_bank), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/balance$", flags=re.IGNORECASE), handle_check_balance), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/daily$", flags=re.IGNORECASE), handle_claim_daily), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/transfer", flags=re.IGNORECASE), handle_transfer), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/list_market$", flags=re.IGNORECASE), handle_list_market), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/add_market", flags=re.IGNORECASE), handle_add_market), group=40)
-    app.add_handler(MessageHandler(filters.Regex("^/buy_market", flags=re.IGNORECASE), handle_buy_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/open_bank$", flags=re.IGNORECASE) & G, handle_open_bank), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/balance$", flags=re.IGNORECASE) & G, handle_check_balance), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/daily$", flags=re.IGNORECASE) & G, handle_claim_daily), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/transfer(?:\s+\d+\s+\d+)?$", flags=re.IGNORECASE) & G, handle_transfer), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/list_market$", flags=re.IGNORECASE) & G, handle_list_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/add_market(?:\s+.+\s+\S+\s+\d+)?$", flags=re.IGNORECASE) & G, handle_add_market), group=40)
+    app.add_handler(MessageHandler(filters.Regex(r"^/buy_market(?:\s+\d+)?$", flags=re.IGNORECASE) & G, handle_buy_market), group=40)
