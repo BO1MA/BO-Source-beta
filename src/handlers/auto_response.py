@@ -47,33 +47,27 @@ group_svc = GroupService()
 
 @group_only
 async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to common greetings with different responses each time."""
+    """Respond to common greetings with all available responses."""
     text = (update.message.text or "").strip()
 
     # Check GREETING_RESPONSES
     for trigger, responses in GREETING_RESPONSES.items():
         if trigger in text:
-            # Use Redis to track cycle index (persists across serverless invocations)
-            redis_key = f"greeting_cycle:{trigger}"
-            current_idx = int(redis_svc.get(redis_key) or "0")
-            response = responses[current_idx % len(responses)]
-            next_idx = (current_idx + 1) % len(responses)
-            redis_svc.set(redis_key, str(next_idx))
-            
-            await update.message.reply_text(response)
+            # Show all responses together
+            all_responses = "\n".join(responses)
+            await update.message.reply_text(all_responses)
             return
 
     # Check CHAT_RESPONSES (exact match)
     if text in CHAT_RESPONSES:
-        responses = CHAT_RESPONSES[text]
-        # Use Redis to track cycle index
-        redis_key = f"chat_cycle:{text}"
-        current_idx = int(redis_svc.get(redis_key) or "0")
-        response = responses[current_idx % len(responses)]
-        next_idx = (current_idx + 1) % len(responses)
-        redis_svc.set(redis_key, str(next_idx))
+        response = CHAT_RESPONSES[text]
+        # If it's a list/tuple of responses, join them all
+        if isinstance(response, (list, tuple)):
+            all_responses = "\n".join(response)
+        else:
+            all_responses = response
         
-        await update.message.reply_text(response)
+        await update.message.reply_text(all_responses)
         return
 
 
@@ -177,13 +171,9 @@ async def handle_source_info(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 @group_only
 async def handle_would_you_rather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to 'لو خيروك' with different options each time."""
-    redis_key = "wyr_cycle"
-    current_idx = int(redis_svc.get(redis_key) or "0")
-    option1, option2 = WOULD_YOU_RATHER[current_idx % len(WOULD_YOU_RATHER)]
-    next_idx = (current_idx + 1) % len(WOULD_YOU_RATHER)
-    redis_svc.set(redis_key, str(next_idx))
-    
+    """Respond to 'لو خيروك' with a random would-you-rather option."""
+    # Show one random option from all available
+    option1, option2 = random.choice(WOULD_YOU_RATHER)
     user = update.effective_user
 
     await update.message.reply_text(
