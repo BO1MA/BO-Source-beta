@@ -128,23 +128,20 @@ async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     logger.info("handle_bot_info triggered for user: %s", update.effective_user.id)
     chat_id = update.effective_chat.id
     keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton('⌯ تــاكــي الــكـبـيـرر ⊁', url='https://t.me/D_k_j'),
-        ],
-        [
-            InlineKeyboardButton('00:00', url='https://t.me/x_clasic_x'),
-        ],
+        [InlineKeyboardButton("إيمو / أشموديل / احمد", url="https://t.me/BO1MA")],
+        [InlineKeyboardButton("قناة السورس", url="https://t.me/BO_MR")],
     ])
     caption = (
-        '◍ لو عايز بوت مميز بدون توقف وامان  .\n'
-        '◍قم بـ التواصل مع المطورين عبر الازرار تاليه .'
+        "◍ بوت حماية قوي ومتطور 🤖\n"
+        "◍ بدون توقف وأمان عالي ✅\n"
+        "◍ للتواصل مع المطورين اضغط الازرار بالاسفل 👇"
     )
     await context.bot.send_photo(
         chat_id=chat_id,
-        photo='https://t.me/F_R_M1/407',
+        photo="https://t.me/BO_MR/45",
         caption=caption,
         reply_markup=keyboard,
-        parse_mode='HTML',
+        parse_mode='Markdown',
         disable_web_page_preview=True
     )
 
