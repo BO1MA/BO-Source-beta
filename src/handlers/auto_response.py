@@ -123,29 +123,6 @@ async def handle_developer_info(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 @group_only
-async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to 'بوت' with photo, caption, and inline buttons."""
-    logger.info("handle_bot_info triggered for user: %s", update.effective_user.id)
-    chat_id = update.effective_chat.id
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("إيمو / أشموديل / احمد", url="https://t.me/BO1MA")],
-        [InlineKeyboardButton("قناة السورس", url="https://t.me/BO_MR")],
-    ])
-    caption = (
-        "◍ لو عايز بوت مميز بدون توقف وامان .\n"
-        "◍ قم بـ التواصل مع المطورين عبر الازرار تاليه ."
-    )
-    await context.bot.send_photo(
-        chat_id=chat_id,
-        photo="https://t.me/BO_MR/45",
-        caption=caption,
-        reply_markup=keyboard,
-        parse_mode='Markdown',
-        disable_web_page_preview=True
-    )
-
-
-@group_only
 async def handle_source_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """السورس / سورس — send source card with contact buttons."""
     chat_id = update.effective_chat.id
@@ -416,12 +393,6 @@ def register(app: Application) -> None:
         filters.Regex(r"(?i)^(السورس|سورس|يا سورس)$") & G,
         handle_source_info
     ), group=40)
-
-    # Bot info
-    app.add_handler(MessageHandler(
-        filters.Regex(r"(?i)^(البوت|بوت)$") & G,
-        handle_bot_info
-    ), group=10)
 
     # Would you rather
     app.add_handler(MessageHandler(
