@@ -132,9 +132,8 @@ async def handle_bot_info(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         [InlineKeyboardButton("قناة السورس", url="https://t.me/BO_MR")],
     ])
     caption = (
-        "◍ بوت حماية قوي ومتطور 🤖\n"
-        "◍ بدون توقف وأمان عالي ✅\n"
-        "◍ للتواصل مع المطورين اضغط الازرار بالاسفل 👇"
+        "◍ لو عايز بوت مميز بدون توقف وامان .\n"
+        "◍ قم بـ التواصل مع المطورين عبر الازرار تاليه ."
     )
     await context.bot.send_photo(
         chat_id=chat_id,
