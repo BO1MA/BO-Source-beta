@@ -6,6 +6,14 @@ fun commands, greetings, riddles, proverbs, etc.
 from __future__ import annotations
 import random
 
+# ── Channel / Support URLs ──
+SUPPORT_CHANNEL = "@BO_MR"
+SUPPORT_CHANNEL_URL = "https://t.me/BO_MR"
+UPDATES_CHANNEL = "@BO_MR"
+UPDATES_CHANNEL_URL = "https://t.me/BO_MR"
+DEVELOPER_URL = "https://t.me/BO1MA"
+CHANNEL_PHOTO_URL = "https://t.me/BO_MR/45"
+
 # ── Start / Welcome ──
 MSG_START = (
     "✯ مـرحبـا بـك {name}\n"
@@ -130,9 +138,9 @@ def get_activity_level(msg_count: int) -> str:
 
 # ── Developer Info ──
 MSG_DEVELOPER_INFO = (
-    "✯ المبرمج: @{developer}\n"
-    "✯ لغة البرمجه: Python 🐍\n"
-    "✯ المكتبه: python-telegram-bot"
+    f"✯ مطور البوت: @{{developer}}\n"
+    f"✯ قناة الدعم: {SUPPORT_CHANNEL}\n"
+    f"✯ قناة التحديثات: {UPDATES_CHANNEL}"
 )
 
 # ── Statistics ──
