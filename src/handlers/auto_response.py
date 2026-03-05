@@ -47,27 +47,45 @@ group_svc = GroupService()
 
 @group_only
 async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Respond to common greetings with all available responses."""
+    """Respond to common greetings with sequential cycling through responses."""
     text = (update.message.text or "").strip()
 
     # Check GREETING_RESPONSES
     for trigger, responses in GREETING_RESPONSES.items():
         if trigger in text:
-            # Show all responses together
-            all_responses = "\n".join(responses)
-            await update.message.reply_text(all_responses)
+            # Get current index from Redis
+            redis_key = f"greeting_cycle:{trigger}"
+            current_index = int(redis_svc.get(redis_key) or 0)
+            
+            # Get the response at current index
+            response = responses[current_index]
+            
+            # Update index for next time (cycle back to 0 when reaching end)
+            next_index = (current_index + 1) % len(responses)
+            redis_svc.set(redis_key, str(next_index))
+            
+            await update.message.reply_text(response)
             return
 
     # Check CHAT_RESPONSES (exact match)
     if text in CHAT_RESPONSES:
         response = CHAT_RESPONSES[text]
-        # If it's a list/tuple of responses, join them all
-        if isinstance(response, (list, tuple)):
-            all_responses = "\n".join(response)
-        else:
-            all_responses = response
         
-        await update.message.reply_text(all_responses)
+        # If it's a list/tuple of responses, cycle through them
+        if isinstance(response, (list, tuple)):
+            redis_key = f"chat_cycle:{text}"
+            current_index = int(redis_svc.get(redis_key) or 0)
+            
+            # Get the response at current index
+            msg_response = response[current_index]
+            
+            # Update index for next time (cycle back to 0 when reaching end)
+            next_index = (current_index + 1) % len(response)
+            redis_svc.set(redis_key, str(next_index))
+        else:
+            msg_response = response
+        
+        await update.message.reply_text(msg_response)
         return
 
 
