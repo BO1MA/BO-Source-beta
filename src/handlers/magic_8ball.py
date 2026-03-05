@@ -41,8 +41,8 @@ async def handle_magic_8ball_start(update: Update, context: ContextTypes.DEFAULT
         f"📝 | ارسل لي سؤال وسأقوم بالإجابة عن الاسئله بنعم أو لا 👀",
         reply_markup=InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("𝐒𝐚𝐖 𝟔𝟔𝟔 𖢣", url="https://t.me/uiiii"),
-                InlineKeyboardButton("قناتنا 𝟔𝟔𝟔 Ch𖢣", url="https://t.me/CSS_2")
+                InlineKeyboardButton("𝐒𝐚𝐖 𝟔𝟔𝟔 𖢣", url="https://t.me/BO1MA"),
+                InlineKeyboardButton("قناتنا 𝟔𝟔𝟔 Ch𖢣", url="https://t.me/BO_MR")
             ],
         ])
     )
