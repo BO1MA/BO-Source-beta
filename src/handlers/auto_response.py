@@ -57,8 +57,8 @@ async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             redis_key = f"greeting_cycle:{trigger}"
             current_index = int(redis_svc.get(redis_key) or 0)
             
-            # Get the response at current index
-            response = responses[current_index]
+            # Get the response at current index (ensure it's a string)
+            response = str(responses[current_index])
             
             # Update index for next time (cycle back to 0 when reaching end)
             next_index = (current_index + 1) % len(responses)
@@ -76,14 +76,14 @@ async def handle_greetings(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             redis_key = f"chat_cycle:{text}"
             current_index = int(redis_svc.get(redis_key) or 0)
             
-            # Get the response at current index
-            msg_response = response[current_index]
+            # Get the response at current index (ensure it's a string)
+            msg_response = str(response[current_index])
             
             # Update index for next time (cycle back to 0 when reaching end)
             next_index = (current_index + 1) % len(response)
             redis_svc.set(redis_key, str(next_index))
         else:
-            msg_response = response
+            msg_response = str(response)
         
         await update.message.reply_text(msg_response)
         return
