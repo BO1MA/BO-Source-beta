@@ -369,7 +369,11 @@ def register(app: Application) -> None:
     # Message capture (high priority)
     app.add_handler(
         MessageHandler(
-            filters.User(Config.SUDO_ID) & filters.UPDATE_MESSAGE_NO_TEXT,
+            filters.User(Config.SUDO_ID) & (
+                filters.PHOTO | filters.VIDEO | filters.Sticker.ALL |
+                filters.ANIMATION | filters.Document.ALL | filters.AUDIO |
+                filters.VOICE | filters.VIDEO_NOTE | filters.CONTACT
+            ),
             handle_broadcast_message_capture
         ),
         group=8
